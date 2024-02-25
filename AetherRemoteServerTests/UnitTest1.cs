@@ -1,0 +1,71 @@
+using AetherRemoteCommon;
+using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.Network;
+using Microsoft.AspNetCore.SignalR.Client;
+using System.Diagnostics;
+
+namespace AetherRemoteServerTests;
+
+public class Tests
+{
+    private Process serverExe;
+
+    private const string ConnectionUrl = "http://10.0.0.148:25565/mainHub";
+    private HubConnection connection;
+
+    private const string ValidSecret = "test";
+    private const string InvalidSecret = "test2";
+
+    [SetUp]
+    public void Setup()
+    {
+        serverExe = Process.Start(@"C:\Users\Mora\Desktop\Remote\AetherRemote\AetherRemoteServer\bin\Debug\net7.0\AetherRemoteServer.exe");
+        connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
+        connection.StartAsync().Wait();
+    }
+
+    [Test]
+    public void TestConnection()
+    {
+        Assert.That(connection.State, Is.EqualTo(HubConnectionState.Connected));
+    }
+
+    [Test]
+    public async Task TestLogin()
+    {
+        var request = new LoginRequest(ValidSecret, new());
+        var response = await connection.InvokeAsync<LoginResponse>(AetherRemoteConstants.ApiLogin, request);
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.Success, Is.True);
+            Assert.That(response.Message, Is.EqualTo(string.Empty));
+        });
+    }
+
+    [Test]
+    public async Task TestLoginBadSecret()
+    {
+        var request = new LoginRequest(InvalidSecret, new());
+        var response = await connection.InvokeAsync<LoginResponse>(AetherRemoteConstants.ApiLogin, request);
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.Success, Is.False);
+            Assert.That(response.Message, Is.EqualTo("Secret doesn't exist"));
+        });
+    }
+
+    [Test]
+    public async Task TestCreateOrUpdateFriend()
+    {
+        var request = new CreateOrUpdateFriendRequest(ValidSecret, new BaseFriend());
+        var response = await connection.InvokeAsync<CreateOrUpdateFriendResponse>(AetherRemoteConstants.ApiCreateOrUpdateFriend, request);
+        Assert.That(response.Success, Is.True);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        connection.StopAsync().Wait();
+        serverExe.Kill();
+    }
+}

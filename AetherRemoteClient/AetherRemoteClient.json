@@ -1,0 +1,12 @@
+{
+  "Author": "Mora",
+  "Name": "Aether Remote",
+  "Punchline": "Controlling all of the world!",
+  "Description": "A plugin to control other player's emotes, speech, and more.",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "sample",
+    "plugin",
+    "goats"
+  ]
+}
