@@ -1,19 +1,14 @@
+using AetherRemoteCommon.Domain.Network.Base;
+
 namespace AetherRemoteCommon.Domain.Network;
 
-public class DeleteFriendResponse
+public class DeleteFriendResponse : CommandResponse
 {
-    public bool Success { get; private set; }
-    public string Message { get; private set; }
+    public DeleteFriendResponse() { }
+    public DeleteFriendResponse(bool success, string message) : base(success, message) { }
 
-    public DeleteFriendResponse()
+    public override string ToString()
     {
-        Success = true;
-        Message = string.Empty;
-    }
-
-    public DeleteFriendResponse(bool success, string message)
-    {
-        Success = success;
-        Message = message;
+        return $"DeleteFriendResponse[Success={Success}, Message={Message}]";
     }
 }

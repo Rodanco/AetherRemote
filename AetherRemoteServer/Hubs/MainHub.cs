@@ -1,5 +1,8 @@
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain.Network;
+using AetherRemoteCommon.Domain.Network.Become;
+using AetherRemoteCommon.Domain.Network.Emote;
+using AetherRemoteCommon.Domain.Network.Speak;
 using AetherRemoteServer.Services;
 using Microsoft.AspNetCore.SignalR;
 

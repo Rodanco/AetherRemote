@@ -1,23 +1,11 @@
-using System.Net.Sockets;
+using AetherRemoteCommon.Domain.Network.Base;
 
 namespace AetherRemoteCommon.Domain.Network;
 
-public class CreateOrUpdateFriendResponse
+public class CreateOrUpdateFriendResponse : CommandResponse
 {
-    public bool Success { get; private set; }
-    public string Message { get; private set; }
-
-    public CreateOrUpdateFriendResponse()
-    {
-        Success = true;
-        Message = string.Empty;
-    }
-
-    public CreateOrUpdateFriendResponse(bool success, string message)
-    {
-        Success = success;
-        Message = message;
-    }
+    public CreateOrUpdateFriendResponse() { }
+    public CreateOrUpdateFriendResponse(bool success, string message) : base(success, message) { }
 
     public override string ToString()
     {

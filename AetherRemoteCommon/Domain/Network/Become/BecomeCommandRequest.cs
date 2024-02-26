@@ -1,24 +1,21 @@
-namespace AetherRemoteCommon.Domain.Network;
+using AetherRemoteCommon.Domain.Network.Base;
 
-public class BecomeCommandRequest
+namespace AetherRemoteCommon.Domain.Network.Become;
+
+public class BecomeCommandRequest : CommandRequest
 {
-    public string Secret { get; set; }
-    public List<string> TargetFriendCodes { get; set; }
     public string GlamourerData { get; set; }
     public GlamourerApplyType GlamourerApplyType { get; set; }
-    
+
     public BecomeCommandRequest()
     {
-        Secret = string.Empty;
-        TargetFriendCodes = new();
         GlamourerData = string.Empty;
         GlamourerApplyType = GlamourerApplyType.CustomizationAndEquipment;
     }
 
-    public BecomeCommandRequest(string secret, List<string> targetFriendCodes, string glamourerData, GlamourerApplyType glamourerApplyType)
+    public BecomeCommandRequest(string secret, List<string> targetFriendCodes, string glamourerData, 
+        GlamourerApplyType glamourerApplyType): base(secret, targetFriendCodes)
     {
-        Secret = secret;
-        TargetFriendCodes = targetFriendCodes;
         GlamourerData = glamourerData;
         GlamourerApplyType = glamourerApplyType;
     }

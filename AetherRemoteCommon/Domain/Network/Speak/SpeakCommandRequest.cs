@@ -1,27 +1,23 @@
-namespace AetherRemoteCommon.Domain.Network;
+using AetherRemoteCommon.Domain.Network.Base;
 
-public class SpeakCommandRequest
+namespace AetherRemoteCommon.Domain.Network.Speak;
+
+public class SpeakCommandRequest : CommandRequest
 {
-    public string Secret { get; set; }
-    public List<string> TargetFriendCodes { get; set; }
     public string Message { get; set; }
     public ChatMode Channel { get; set; }
     public string? Extra { get; set; }
 
     public SpeakCommandRequest()
     {
-        Secret = string.Empty;
-        TargetFriendCodes = new();
         Message = string.Empty;
         Channel = ChatMode.Say;
         Extra = null;
     }
 
-    public SpeakCommandRequest(string secret, List<string> targetFriendCodes, 
-        string message, ChatMode channel, string? extra = null)
+    public SpeakCommandRequest(string secret, List<string> targetFriendCodes,
+        string message, ChatMode channel, string? extra = null) : base(secret, targetFriendCodes)
     {
-        Secret = secret;
-        TargetFriendCodes = targetFriendCodes;
         Message = message;
         Channel = channel;
         Extra = extra;

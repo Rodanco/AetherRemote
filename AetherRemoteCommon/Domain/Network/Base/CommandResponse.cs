@@ -1,17 +1,17 @@
-namespace AetherRemoteCommon.Domain.Network;
+namespace AetherRemoteCommon.Domain.Network.Base;
 
-public class EmoteCommandResponse
+public class CommandResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
 
-    public EmoteCommandResponse()
+    public CommandResponse()
     {
         Success = true;
         Message = string.Empty;
     }
 
-    public EmoteCommandResponse(bool success, string message)
+    public CommandResponse(bool success, string message)
     {
         Success = success;
         Message = message;
@@ -19,6 +19,6 @@ public class EmoteCommandResponse
 
     public override string ToString()
     {
-        return $"EmoteCommandResponse[Success={Success}, Message={Message}]";
+        return $"CommandResponse[Success={Success}, Message={Message}]";
     }
 }

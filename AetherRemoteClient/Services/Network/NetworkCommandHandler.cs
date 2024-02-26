@@ -1,6 +1,9 @@
 using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.Network.Become;
+using AetherRemoteCommon.Domain.Network.Emote;
+using AetherRemoteCommon.Domain.Network.Speak;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Plugin.Services;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -39,34 +42,34 @@ public class NetworkCommandHandler
         this.emoteService = emoteService;
         this.connection = connection;
 
-        connection.On(AetherRemoteConstants.ApiSpeak,
-            (string senderFriendCode, string channel, ChatMode message, string? extra) => { HandleSpeakCommand(senderFriendCode, channel, message, extra); });
+        connection.On(AetherRemoteConstants.ApiSpeak, 
+            (SpeakCommandExecute execute) => { HandleSpeakCommand(execute); });
 
-        connection.On(AetherRemoteConstants.ApiEmote,
-            (string senderFriendCode, string emote) => { HandleEmoteCommand(senderFriendCode, emote); });
+        connection.On(AetherRemoteConstants.ApiEmote, 
+            (EmoteCommandExecute execute) => { HandleEmoteCommand(execute); });
 
         connection.On(AetherRemoteConstants.ApiBecome,
-            (string senderFriendCode, string glamourerData, GlamourerApplyType glamourerApplyType) => { HandleBecomeCommand(senderFriendCode, glamourerData, glamourerApplyType); });
+            (BecomeCommandExecute execute) => { HandleBecomeCommand(execute); });
     }
 
-    public void HandleSpeakCommand(string senderFriendCode, string message, ChatMode chatMode, string? extra)
+    public void HandleSpeakCommand(SpeakCommandExecute execute)
     {
-        logger.Info($"HandleSpeakCommand recieved: Sender: {senderFriendCode}, Message: {message}, Channel: {chatMode}, Extra: {extra}");
+        logger.Info($"HandleSpeakCommand: {execute}");
 
         var chatCommand = new StringBuilder();
 
         chatCommand.Append('/');
-        chatCommand.Append(chatMode.ToChatCommand());
+        chatCommand.Append(execute.Channel.ToChatCommand());
 
-        if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
-            chatCommand.Append(extra);
+        if (execute.Channel == ChatMode.Linkshell || execute.Channel == ChatMode.CrossworldLinkshell)
+            chatCommand.Append(execute.Extra);
 
         chatCommand.Append(' ');
 
-        if (chatMode == ChatMode.Tell)
-            chatCommand.Append(extra);
+        if (execute.Channel == ChatMode.Tell)
+            chatCommand.Append(execute.Extra);
 
-        var sanitizedMessage = SanitizeMessage(message);
+        var sanitizedMessage = SanitizeMessage(execute.Message);
         chatCommand.Append(sanitizedMessage);
 
         var completedChatCommand = chatCommand.ToString();
@@ -89,17 +92,17 @@ public class NetworkCommandHandler
         }
     }
 
-    public void HandleEmoteCommand(string senderFriendCode, string emote)
+    public void HandleEmoteCommand(EmoteCommandExecute execute)
     {
-        logger.Info($"HandleEmoteCommand recieved: Sender: {senderFriendCode}, Emote: {emote}");
+        logger.Info($"HandleEmoteCommand recieved: {execute}");
 
-        var validEmote = emoteService.GetEmotes().Contains(emote);
+        var validEmote = emoteService.GetEmotes().Contains(execute.Emote);
         if (validEmote == false)
         {
-            logger.Info($"Got invalid emote from server: [{emote}]");
+            logger.Info($"Got invalid emote from server: [{execute.Emote}]");
         }
 
-        var completedChatCommand = $"/{emote} mo";
+        var completedChatCommand = $"/{execute.Emote} mo";
 
         if (completedChatCommand.Length > AetherRemoteConstants.SpeakCommandCharLimit)
         {
@@ -109,7 +112,6 @@ public class NetworkCommandHandler
 
         try
         {
-            logger.Info($"Final command to be sent: {completedChatCommand}");
             Task.Run(() => chat.SendMessage(completedChatCommand)).Wait();
         }
         catch (Exception ex)
@@ -118,8 +120,10 @@ public class NetworkCommandHandler
         }
     }
 
-    public void HandleBecomeCommand(string senderFriendCode, string glamourerData, GlamourerApplyType glamourerApplyType)
+    public void HandleBecomeCommand(BecomeCommandExecute execute)
     {
+        logger.Info($"HandleBecomeCommand recieved: {execute}");
+
         try
         {
             var player = clientState.LocalPlayer;
@@ -129,7 +133,7 @@ public class NetworkCommandHandler
                 return;
             }
 
-            glamourerAccessor.ApplyDesign(player.Name.ToString(), glamourerData, glamourerApplyType);
+            glamourerAccessor.ApplyDesign(player.Name.ToString(), execute.GlamourerData, execute.GlamourerApplyType);
         }
         catch(Exception ex )
         {

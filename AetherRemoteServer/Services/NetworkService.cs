@@ -1,5 +1,8 @@
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.Network.Become;
+using AetherRemoteCommon.Domain.Network.Emote;
+using AetherRemoteCommon.Domain.Network.Speak;
 using AetherRemoteServer.Domain;
 using Microsoft.AspNetCore.SignalR;
 
@@ -129,24 +132,17 @@ public class NetworkService : INetworkService
         {
             var targetUser = TryGetOnlineUser(targetFriendCode);
             if (targetUser == null)
-            {
-                Console.WriteLine($"User is offline: {targetFriendCode}");
                 continue; // Target is offline
-            }
 
             var issuerOnTargetFriendList = targetUser.IsFriendsWith(issuerFriendCode);
             if (issuerOnTargetFriendList == false)
-            {
-                Console.WriteLine($"User is not on friend list: {targetFriendCode}");
                 continue; // Issuer is not on target's friend list
-            }  
 
             try
             {
-                Console.WriteLine($"Sending to {targetUser.FriendCode}: {message}");
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiSpeak,
-                    issuerFriendCode, channel, message, extra);
-            }//
+                var execute = new SpeakCommandExecute(issuerFriendCode, message, channel, extra);
+                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiSpeak, execute);
+            }
             catch (Exception ex)
             {
                 return new NetworkResult(false, ex.Message);
@@ -167,16 +163,22 @@ public class NetworkService : INetworkService
         {
             var targetUser = TryGetOnlineUser(targetFriendCode);
             if (targetUser == null)
+            {
+                Console.WriteLine("Ugh12.");
                 continue; // Target is offline
+            }
 
             var issuerOnTargetFriendList = targetUser.IsFriendsWith(issuerFriendCode);
             if (issuerOnTargetFriendList == false)
+            {
+                Console.WriteLine("Ugh.");
                 continue; // Issuer is not on target's friend list
+            }
 
             try
             {
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiEmote,
-                    issuerFriendCode, emote);
+                var execute = new EmoteCommandExecute(issuerFriendCode, emote);
+                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiEmote, execute);
             }
             catch (Exception ex)
             {
@@ -206,8 +208,8 @@ public class NetworkService : INetworkService
 
             try
             {
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiBecome,
-                    issuerFriendCode, glamourerData, glamourerApplyType);
+                var execute = new BecomeCommandExecute(issuerFriendCode, glamourerData, glamourerApplyType);
+                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiBecome, execute);
             }
             catch (Exception ex)
             {
