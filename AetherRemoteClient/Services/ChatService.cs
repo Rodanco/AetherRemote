@@ -12,14 +12,14 @@ namespace AetherRemoteClient.Services;
 /// </summary>
 public class ChatService
 {
+    private const int MinProcessTimeInMillis = 1000;
+    private const int MaxProcessTimeInMillis = 3000;
+
     private readonly Chat chat;
     private readonly IPluginLog logger;
 
     private readonly Queue<string> commands;
     private readonly Random random;
-
-    private const int MinProcessTimeInMillis = 1000;
-    private const int MaxProcessTimeInMillis = 3000;
 
     private DateTime lastUpdate = DateTime.Now;
     private double timeUpdateNextProcess = 0;

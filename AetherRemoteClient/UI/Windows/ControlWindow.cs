@@ -3,6 +3,7 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
@@ -23,6 +24,7 @@ public class ControlWindow : Window
     private readonly List<Friend> selectedFriends;
     private readonly SessionService sessionService;
     private readonly IPluginLog logger;
+    private readonly ITargetManager targetManager;
     private readonly EmoteService emoteService;
     private readonly NetworkService networkService;
     private readonly GlamourerAccessor glamourerAccessor;
@@ -47,6 +49,7 @@ public class ControlWindow : Window
         List<Domain.Friend> selectedFriends,
         SessionService sessionService, 
         IPluginLog logger,
+        ITargetManager targetManager,
         EmoteService emoteService,
         NetworkService networkService,
         GlamourerAccessor glamourerAccessor) : base(windowName, ControlWindowFlags)
@@ -61,6 +64,7 @@ public class ControlWindow : Window
         this.selectedFriends = selectedFriends;
         this.sessionService = sessionService;
         this.logger = logger;
+        this.targetManager = targetManager;
         this.emoteService = emoteService;
         this.networkService = networkService;
         this.glamourerAccessor = glamourerAccessor;
@@ -159,7 +163,27 @@ public class ControlWindow : Window
 
         if (!glamourerAccessor.IsGlamourerInstalled) ImGui.BeginDisabled();
 
-        SharedUserInterfaces.IconButton(getTargetGlamourerDataButtonArgs);
+        if (SharedUserInterfaces.IconButton(getTargetGlamourerDataButtonArgs))
+        {
+            var target = targetManager.Target;
+            if (target == null)
+            {
+                logger.Info("No target");
+            }
+            else
+            {
+                var data = glamourerAccessor.GetCustomization(target.Name.ToString());
+                if (data == null)
+                {
+                    logger.Info("No glamourer data");
+                }
+                else
+                {
+                    glamourerData = data;
+                }
+            }
+        }
+
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(330);

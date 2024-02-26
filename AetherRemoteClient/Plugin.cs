@@ -2,9 +2,6 @@ using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
 using AetherRemoteClient.UI.Windows;
-using Dalamud.Game.Addon.Events;
-using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -34,7 +31,6 @@ public sealed class Plugin : IDalamudPlugin
     public Chat Chat { get; init; }
 
     public Configuration Configuration { get; init; }
-
     public SharedUserInterfaces SharedUserInterfaces { get; init; }
 
     public GlamourerAccessor GlamourerAccessor { get; init; }
@@ -79,8 +75,6 @@ public sealed class Plugin : IDalamudPlugin
         // Used to send messages to the server
         Chat = new XivCommonBase(pluginInterface).Functions.Chat;
 
-        // https://github.com/KazWolfe/XIVDeck/compare/v0.2.12...v0.2.13
-
         // Accessors
         GlamourerAccessor = new GlamourerAccessor(this);
 
@@ -112,6 +106,7 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         NetworkService.Dispose();
+        SessionService.Dispose();
         GlamourerAccessor.Dispose();
 
         WindowSystem.RemoveAllWindows();
@@ -128,7 +123,9 @@ public sealed class Plugin : IDalamudPlugin
 
     private void DrawUI()
     {
+        // Convenient way to do this
         ChatService.Update();
+
         WindowSystem.Draw();
     }
 

@@ -1,5 +1,4 @@
 using AetherRemoteClient.Services.Network;
-using AetherRemoteCommon.Domain;
 using Dalamud.Plugin.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;

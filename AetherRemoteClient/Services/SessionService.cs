@@ -1,19 +1,22 @@
 using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.UI.Windows;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace AetherRemoteClient.Services;
 
-public class SessionService
+public class SessionService : IDisposable
 {
     private readonly Dictionary<int, Window> windows = new();
     private readonly WindowSystem windowSystem;
     private readonly IPluginLog logger;
+    private readonly ITargetManager targetManager;
     private readonly EmoteService emoteService;
     private readonly NetworkService networkService;
     private readonly GlamourerAccessor glamourerAccessor;
@@ -25,6 +28,7 @@ public class SessionService
         emoteService = plugin.EmoteService;
         networkService = plugin.NetworkService;
         glamourerAccessor = plugin.GlamourerAccessor;
+        targetManager = plugin.TargetManager;
     }
 
     public void MakeWindow(List<Friend> selectedFriends)
@@ -52,7 +56,7 @@ public class SessionService
         sb.Append(hash.ToString("X8"));
         sb.Append(']');
 
-        var window = new ControlWindow(sb.ToString(), hash, selectedFriends, this, logger, emoteService, networkService, glamourerAccessor);
+        var window = new ControlWindow(sb.ToString(), hash, selectedFriends, this, logger, targetManager, emoteService, networkService, glamourerAccessor);
         windowSystem.AddWindow(window);
         window.IsOpen = true;
 
@@ -65,7 +69,18 @@ public class SessionService
         windowSystem.RemoveWindow(window);
     }
 
-    public void RemoveAllWindows()
+    public void Dispose()
+    {
+        RemoveAllWindows();
+        GC.SuppressFinalize(this);
+    }
+
+    private static int ComputeHash(List<Friend> selectedFriends)
+    {
+        return string.Join("", selectedFriends.OrderBy(friend => friend.FriendCode)).GetHashCode();
+    }
+
+    private void RemoveAllWindows()
     {
         foreach (var kvp in windows)
         {
@@ -75,10 +90,5 @@ public class SessionService
             windowSystem.RemoveWindow(window);
             windows.Remove(hash);
         }
-    }
-
-    private static int ComputeHash(List<Friend> selectedFriends)
-    {
-        return string.Join("", selectedFriends.OrderBy(friend => friend.FriendCode)).GetHashCode();
     }
 }
