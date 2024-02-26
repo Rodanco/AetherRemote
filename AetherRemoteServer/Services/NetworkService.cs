@@ -192,6 +192,8 @@ public class NetworkService : INetworkService
     public NetworkResult IssueBecomeCommand(string secret, string glamourerData, GlamourerApplyType glamourerApplyType,
         List<string> targetFriendCodes, IHubCallerClients clients)
     {
+        Console.WriteLine($"Hey look, a become command!");
+
         var issuerFriendCode = storageService.GetFriendCode(secret);
         if (issuerFriendCode == null)
             return new NetworkResult(false, $"Could not find friend code for provided secret: {secret}");

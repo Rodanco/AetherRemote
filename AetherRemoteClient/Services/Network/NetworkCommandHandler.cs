@@ -17,8 +17,8 @@ namespace AetherRemoteClient.Services.Network;
 
 public class NetworkCommandHandler
 {
-    private readonly Chat chat;
     private readonly EmoteService emoteService;
+    private readonly ChatService chatService;
     private readonly HubConnection connection;
     private readonly GlamourerAccessor glamourerAccessor;
     private readonly IPluginLog logger;
@@ -27,20 +27,20 @@ public class NetworkCommandHandler
 
     public NetworkCommandHandler(
         HubConnection connection,
-        Chat chat,
+        ChatService chatService,
         EmoteService emoteService,
         GlamourerAccessor glamourerAccessor,
         IPluginLog logger, 
         ISanitizer sanitizer, 
         IClientState clientState)
     {
-        this.chat = chat;
         this.logger = logger;
         this.sanitizer = sanitizer;
         this.glamourerAccessor = glamourerAccessor;
         this.clientState = clientState;
         this.emoteService = emoteService;
         this.connection = connection;
+        this.chatService = chatService;
 
         connection.On(AetherRemoteConstants.ApiSpeak, 
             (SpeakCommandExecute execute) => { HandleSpeakCommand(execute); });
@@ -84,7 +84,7 @@ public class NetworkCommandHandler
 
         try
         {
-            chat.SendMessage(finalSanitizedString);
+            chatService.EnqueueCommand(finalSanitizedString);
         }
         catch(Exception ex)
         {
@@ -112,7 +112,7 @@ public class NetworkCommandHandler
 
         try
         {
-            Task.Run(() => chat.SendMessage(completedChatCommand)).Wait();
+            chatService.EnqueueCommand(completedChatCommand);
         }
         catch (Exception ex)
         {

@@ -2,6 +2,9 @@ using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
 using AetherRemoteClient.UI.Windows;
+using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -43,6 +46,7 @@ public sealed class Plugin : IDalamudPlugin
     public SaveService SaveService { get; init; }
     public SessionService SessionService { get; init; }
     public EmoteService EmoteService { get; init; }
+    public ChatService ChatService { get; init; }
 
     public WindowSystem WindowSystem = new("AetherRemote");
     public ConfigWindow ConfigWindow { get; init; }
@@ -51,6 +55,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin(
         DalamudPluginInterface pluginInterface,
         ICommandManager commandManager,
+        IAddonLifecycle addonLifecycle,
         ITargetManager targetManager,
         IClientState clientState,
         IDataManager dataManager,
@@ -80,6 +85,7 @@ public sealed class Plugin : IDalamudPlugin
         GlamourerAccessor = new GlamourerAccessor(this);
 
         // Services
+        ChatService = new ChatService(this);
         EmoteService = new EmoteService(this);
         SaveService = new SaveService(this);
         NetworkService = new NetworkService(this);
@@ -122,6 +128,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void DrawUI()
     {
+        ChatService.Update();
         WindowSystem.Draw();
     }
 
