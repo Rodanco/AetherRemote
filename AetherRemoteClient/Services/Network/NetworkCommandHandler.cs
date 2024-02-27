@@ -17,7 +17,6 @@ public class NetworkCommandHandler : IDisposable
 {
     private readonly EmoteService emoteService;
     private readonly ChatService chatService;
-    private readonly HubConnection connection;
     private readonly GlamourerAccessor glamourerAccessor;
     private readonly IPluginLog logger;
     private readonly ISanitizer sanitizer;
@@ -37,7 +36,6 @@ public class NetworkCommandHandler : IDisposable
         this.glamourerAccessor = glamourerAccessor;
         this.clientState = clientState;
         this.emoteService = emoteService;
-        this.connection = connection;
         this.chatService = chatService;
 
         connection.On(AetherRemoteConstants.ApiSpeak, 
@@ -53,6 +51,12 @@ public class NetworkCommandHandler : IDisposable
     public void HandleSpeakCommand(SpeakCommandExecute execute)
     {
         logger.Info($"HandleSpeakCommand: {execute}");
+
+        if(!clientState.IsLoggedIn)
+        {
+            logger.Info("Ignoring speak command, player not fully logged in.");
+            return;
+        }    
 
         var chatCommand = new StringBuilder();
 
@@ -94,6 +98,12 @@ public class NetworkCommandHandler : IDisposable
     {
         logger.Info($"HandleEmoteCommand recieved: {execute}");
 
+        if (!clientState.IsLoggedIn)
+        {
+            logger.Info("Ignoring speak command, player not fully logged in.");
+            return;
+        }
+
         var validEmote = emoteService.GetEmotes().Contains(execute.Emote);
         if (validEmote == false)
         {
@@ -121,6 +131,12 @@ public class NetworkCommandHandler : IDisposable
     public void HandleBecomeCommand(BecomeCommandExecute execute)
     {
         logger.Info($"HandleBecomeCommand recieved: {execute}");
+
+        if (!clientState.IsLoggedIn)
+        {
+            logger.Info("Ignoring speak command, player not fully logged in.");
+            return;
+        }
 
         try
         {

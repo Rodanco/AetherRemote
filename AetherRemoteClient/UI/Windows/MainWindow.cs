@@ -1,5 +1,4 @@
 using AetherRemoteClient.Domain.Interfaces;
-using AetherRemoteClient.Services;
 using AetherRemoteClient.UI.Windows.Views;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
@@ -9,8 +8,8 @@ namespace AetherRemoteClient.UI.Windows;
 
 public class MainWindow : Window
 {
-    // Modules
-    private readonly NetworkService networkModule;
+    // Configuration
+    private readonly Configuration configuration;
 
     // Views
     private readonly DashboardView dashboardView;
@@ -31,15 +30,17 @@ public class MainWindow : Window
             MaximumSize = new Vector2(250, 400)
         };
 
-        // Modules
-        networkModule = plugin.NetworkService;
+        // Configuration
+        configuration = plugin.Configuration;
 
         // Views
         dashboardView = new DashboardView(plugin, this);
         loginView = new LoginView(plugin, this);
 
-        // TODO: Automatic login
         currentView = loginView;
+
+        if (configuration.AutoConnect)
+            loginView.QueueLogin();
     }
 
     public override void Draw()

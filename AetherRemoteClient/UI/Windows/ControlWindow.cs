@@ -183,7 +183,6 @@ public class ControlWindow : Window
 
         ImGui.SameLine();
 
-        ImGui.SetNextItemWidth(330);
         if (ImGui.InputTextWithHint("###GlamourerDataInput", "Enter glamourer data", ref glamourerData, AetherRemoteConstants.GlamourerDataCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
         {
             ProcessGlamourerCommand();

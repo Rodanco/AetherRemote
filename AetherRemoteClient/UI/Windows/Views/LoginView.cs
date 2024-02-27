@@ -3,13 +3,11 @@ using AetherRemoteClient.Services;
 using AetherRemoteCommon;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
-using System;
 using System.Numerics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AetherRemoteClient.UI.Windows.Views;
-//
+
 public class LoginView : IWindow
 {
     private string secretInputBoxValue;
@@ -26,6 +24,7 @@ public class LoginView : IWindow
     private readonly IPluginLog logger;
     private readonly SaveService saveService;
 
+    private bool pendingLogin = false;
     private bool attemptingLogin = false;
 
     public LoginView(Plugin plugin, MainWindow mainWindow)
@@ -50,10 +49,8 @@ public class LoginView : IWindow
 
         // Read once at the beginning of each draw call to prevent async state changing
         var attemptingLoginThisFrame = attemptingLogin;
-        if (attemptingLoginThisFrame)
-            ImGui.BeginDisabled(true);
+        if (attemptingLoginThisFrame) ImGui.BeginDisabled();
 
-        var pendingLogin = false;
         ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - 15);
         if (ImGui.InputTextWithHint("###SecretInput", "Enter secret", ref secretInputBoxValue, 
             AetherRemoteConstants.SecretCharLimit, inputTextFlags))
@@ -81,24 +78,25 @@ public class LoginView : IWindow
         ImGui.SetCursorPosY(200);
 
         var secretLength = secretInputBoxValue.Length;
-        if (secretLength <= 0)
-            ImGui.BeginDisabled();
-
+        if (secretLength <= 0)ImGui.BeginDisabled();
         if (ImGui.Button("Login", new Vector2(ImGui.GetWindowWidth() - 15, 40)))
         {
             pendingLogin = true;
         }
+        if (secretLength <= 0) ImGui.EndDisabled();
 
-        if (secretLength <= 0)
-            ImGui.EndDisabled();
-
-        if (attemptingLoginThisFrame)
-            ImGui.EndDisabled();
+        if (attemptingLoginThisFrame) ImGui.EndDisabled();
 
         if (pendingLogin)
         {
-            Login();
+            Task.Run(Login);
+            pendingLogin = false;
         }
+    }
+
+    public void QueueLogin()
+    {
+        pendingLogin = true;
     }
 
     private async void Login()
