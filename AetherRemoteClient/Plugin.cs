@@ -40,7 +40,6 @@ public sealed class Plugin : IDalamudPlugin
     public NetworkService NetworkService { get; init; }
     public FriendListService FriendListService { get; init; }
     public SaveService SaveService { get; init; }
-    public SessionService SessionService { get; init; }
     public EmoteService EmoteService { get; init; }
     public ChatService ChatService { get; init; }
 
@@ -84,7 +83,6 @@ public sealed class Plugin : IDalamudPlugin
         SaveService = new SaveService(this);
         NetworkService = new NetworkService(this);
         FriendListService = new FriendListService(this);
-        SessionService = new SessionService(this);
 
         // Windows
         ConfigWindow = new ConfigWindow(this);
@@ -106,7 +104,6 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         NetworkService.Dispose();
-        SessionService.Dispose();
         GlamourerAccessor.Dispose();
 
         WindowSystem.RemoveAllWindows();

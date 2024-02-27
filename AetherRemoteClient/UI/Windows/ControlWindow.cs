@@ -20,14 +20,13 @@ public class ControlWindow : Window
     private readonly IconButtonArgs emoteButtonArgs = new(FontAwesomeIcon.Play, null, new Vector2(28, 25));
     private readonly IconButtonArgs getTargetGlamourerDataButtonArgs = new(FontAwesomeIcon.Crosshairs, null, new Vector2(28, 25), new Vector2(4, 0));
 
-    private readonly int hash;
     private readonly List<Friend> selectedFriends;
-    private readonly SessionService sessionService;
     private readonly IPluginLog logger;
     private readonly ITargetManager targetManager;
     private readonly EmoteService emoteService;
     private readonly NetworkService networkService;
     private readonly GlamourerAccessor glamourerAccessor;
+    private readonly int hash;
 
     private ChatMode chatMode = ChatMode.Say;
     private int shellNumber = 1;
@@ -45,9 +44,8 @@ public class ControlWindow : Window
 
     public ControlWindow(
         string windowName, 
-        int hash, 
-        List<Domain.Friend> selectedFriends,
-        SessionService sessionService, 
+        int hash,
+        List<Friend> selectedFriends,
         IPluginLog logger,
         ITargetManager targetManager,
         EmoteService emoteService,
@@ -60,14 +58,13 @@ public class ControlWindow : Window
             MaximumSize = new Vector2(400, 250)
         };
 
-        this.hash = hash;
         this.selectedFriends = selectedFriends;
-        this.sessionService = sessionService;
         this.logger = logger;
         this.targetManager = targetManager;
         this.emoteService = emoteService;
         this.networkService = networkService;
         this.glamourerAccessor = glamourerAccessor;
+        this.hash = hash;
     }
 
     public override void Draw()
@@ -213,7 +210,7 @@ public class ControlWindow : Window
 
     public override void OnClose()
     {
-        sessionService.RemoveWindow(this, hash);
+        networkService.EndSession(hash);
     }
 
     private void ProcessChatCommand()

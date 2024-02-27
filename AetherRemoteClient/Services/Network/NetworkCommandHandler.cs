@@ -13,7 +13,7 @@ using System.Text;
 
 namespace AetherRemoteClient.Services.Network;
 
-public class NetworkCommandHandler
+public class NetworkCommandHandler : IDisposable
 {
     private readonly EmoteService emoteService;
     private readonly ChatService chatService;
@@ -146,5 +146,10 @@ public class NetworkCommandHandler
     private static string SanitizeMessage(string message)
     {
         return new string(message.Where(c => char.IsLetterOrDigit(c) || char.IsDigit(c)).ToArray());
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 }

@@ -22,7 +22,6 @@ public class DashboardView : IWindow
     private readonly Configuration configuration;
     private readonly FriendListService friendList;
     private readonly NetworkService networkService;
-    private readonly SessionService sessionService;
     private readonly MainWindow mainWindow;
     private readonly IPluginLog logger;
 
@@ -48,7 +47,6 @@ public class DashboardView : IWindow
         uiBuilder = plugin.PluginInterface.UiBuilder;
         friendList = plugin.FriendListService;
         networkService = plugin.NetworkService;
-        sessionService = plugin.SessionService;
         configuration = plugin.Configuration;
         logger = plugin.Logger;
         this.mainWindow = mainWindow;
@@ -173,12 +171,13 @@ public class DashboardView : IWindow
 
         ImGui.EndChild();
 
-        if (friendList.SelectedFriends.Count <= 0) ImGui.BeginDisabled();
+        var friendListCount = friendList.SelectedFriends.Count <= 0;
+        if (friendListCount) ImGui.BeginDisabled();
         if (ImGui.Button("Control", new Vector2(ImGui.GetWindowWidth() - 15, 40)))
         {
-            sessionService.MakeWindow(friendList.SelectedFriends);
+            networkService.StartSession(friendList.SelectedFriends);
         }
-        if (friendList.SelectedFriends.Count <= 0) ImGui.EndDisabled();
+        if (friendListCount) ImGui.EndDisabled();
     }
 
     private static IconButtonArgs MakeFriendConfigButtonArgs(string friendId)

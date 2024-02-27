@@ -1,5 +1,6 @@
 using Dalamud.Plugin.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using XivCommon.Functions;
 
@@ -18,7 +19,7 @@ public class ChatService
     private readonly Chat chat;
     private readonly IPluginLog logger;
 
-    private readonly Queue<string> commands;
+    private readonly ConcurrentQueue<string> commands;
     private readonly Random random;
 
     private DateTime lastUpdate = DateTime.Now;
@@ -70,8 +71,17 @@ public class ChatService
     {
         try
         {
-            var command = commands.Dequeue();
-            chat.SendMessage(command);
+            if(commands.TryDequeue(out var result))
+            {
+                if (result == null)
+                {
+                    logger.Info("Some error");
+                }
+                else
+                {
+                    chat.SendMessage(result);
+                }
+            }
         }
         catch (Exception e)
         {
