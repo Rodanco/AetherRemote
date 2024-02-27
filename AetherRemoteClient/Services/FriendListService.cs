@@ -2,6 +2,7 @@ using AetherRemoteClient.Domain;
 using Dalamud.Plugin.Services;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Services;
 
@@ -40,34 +41,30 @@ public class FriendListService
         }
     }
 
-    public async void AddFriend(Friend newFriend)
+    public async Task<AsyncResult> AddFriend(Friend newFriend)
     {
         var alreadyFriends = Friends.Any(friend => friend.FriendCode == newFriend.FriendCode);
         if (alreadyFriends)
         {
-            logger.Info("[Add Friend] Friend already exists.");
-            return;
+            return new AsyncResult(false, "Friend already exists");
         }
         else
         {
             var result = await networkModule.Commands.CreateOrUpdateFriend(newFriend);
-            if (result)
+            if (result.Success)
             {
-                logger.Info("[Add Friend] Add friend successful.");
                 Friends.Add(newFriend);
                 saveService.SaveAll();
             }
-            else
-            {
-                logger.Info("[Add Friend] Add friend unsuccessful.");
-            }
+
+            return result;
         }
     }
 
     public async void UpdateFriend(Friend oldFriendData, Friend newFriendData)
     {
         var successful = await networkModule.Commands.CreateOrUpdateFriend(newFriendData);
-        if (!successful)
+        if (!successful.Success)
         {
             logger.Info("[Update Friend] Friend update unsuccessful.");
             return;

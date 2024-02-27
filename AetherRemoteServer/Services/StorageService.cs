@@ -14,8 +14,12 @@ namespace AetherRemoteServer.Services
 
         public bool IsValidSecret(string secret)
         {
-            Console.WriteLine($"Secret: {secret}");
             return validSecretsAndFriendCodes.ContainsKey(secret);
+        }
+
+        public bool IsValidFriendCode(string friendCode)
+        {
+            return validSecretsAndFriendCodes.ContainsValue(friendCode);
         }
 
         public string? GetFriendCode(string secret)

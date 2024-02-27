@@ -130,7 +130,7 @@ public class SharedUserInterfaces
     }
 
     /// <summary>
-    /// Text wrap supporting huge words, and colors using & followed by another letter or number.<br/>
+    /// Text wrap supporting huge words, and colors using & followed by another letter or number.
     /// Refer to _colorMap dictionary in SharedUserIntefaces for color information.
     /// </summary>
     public static void WrappedTextColor(string text)

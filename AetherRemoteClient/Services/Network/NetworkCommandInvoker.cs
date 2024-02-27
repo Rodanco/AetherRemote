@@ -66,7 +66,7 @@ public class NetworkCommandInvoker
         return false;
     }
 
-    public async Task<bool> CreateOrUpdateFriend(Friend friend)
+    public async Task<AsyncResult> CreateOrUpdateFriend(Friend friend)
     {
         var secret = saveService.Secret;
 
@@ -75,14 +75,13 @@ public class NetworkCommandInvoker
             var baseFriend = FriendTranslator.DomainToCommon(friend);
             var request = new CreateOrUpdateFriendRequest(secret, baseFriend);
             var response = await InvokeCommand<CreateOrUpdateFriendRequest, CreateOrUpdateFriendResponse>(AetherRemoteConstants.ApiCreateOrUpdateFriend, request);
-            return response.Success;
+            return new AsyncResult(response.Success, response.Message);
         }
         catch(Exception ex)
         {
             logger.Information($"[CreateOrUpdateFriend] Error: {ex.Message}");
+            return new AsyncResult(false, ex.Message);
         }
-
-        return false;
     }
 
     public async Task<bool> DeleteFriend(Friend friend)

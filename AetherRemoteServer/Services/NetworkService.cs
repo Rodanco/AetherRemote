@@ -92,6 +92,10 @@ public class NetworkService : INetworkService
         if (user == null)
             return new NetworkResult(false, $"Could not find online user who matches provided secret: {secret}");
 
+        var validFriendCode = storageService.IsValidFriendCode(friendToCreateOrUpdate.FriendCode);
+        if (validFriendCode == false)
+            return new NetworkResult(false, $"FriendCode does not exist: {friendToCreateOrUpdate.FriendCode}");
+
         var result = new NetworkResult(true);
         var index = user.FriendList.FindIndex(f => f.FriendCode == friendToCreateOrUpdate.FriendCode);
         if (index < 0)
