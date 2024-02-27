@@ -68,6 +68,9 @@ public class NetworkCommandInvoker
 
     public async Task<AsyncResult> CreateOrUpdateFriend(Friend friend)
     {
+        if (Plugin.DeveloperMode)
+            return new AsyncResult(true, "Dev Mode");
+
         var secret = saveService.Secret;
 
         try
@@ -86,6 +89,8 @@ public class NetworkCommandInvoker
 
     public async Task<bool> DeleteFriend(Friend friend)
     {
+        if (Plugin.DeveloperMode) return true;
+
         var secret = saveService.Secret;
 
         try

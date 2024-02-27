@@ -5,7 +5,6 @@ using AetherRemoteClient.UI.Windows.Popups;
 using AetherRemoteCommon;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -60,7 +59,7 @@ public class DashboardView : IWindow
 
     public void Draw()
     {
-        if (networkService.ConnectionStatus == HubConnectionState.Disconnected)
+        if (!Plugin.DeveloperMode && networkService.ConnectionStatus == HubConnectionState.Disconnected)
         {
             mainWindow.SetCurrentViewToLogin();
             return;
@@ -115,14 +114,14 @@ public class DashboardView : IWindow
         }
 
         var friendListAreaSize = ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - 52;
-        ImGui.BeginChild("FriendListArea", new Vector2(0, friendListAreaSize));
+        ImGui.BeginChild("FriendListArea", new Vector2(0, friendListAreaSize), false, ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (ImGui.TreeNodeEx("Online", TreeNodeFlags))
         {
             foreach (var friend in filteredOnlineList)
             {
                 if (ImGui.Selectable($"###Selectable_{friend.FriendCode}", friend.Selected,
-                    ImGuiSelectableFlags.SpanAllColumns, new Vector2(ImGui.GetWindowWidth() - 35, 0)))
+                    ImGuiSelectableFlags.SpanAllColumns, new Vector2(ImGui.GetWindowWidth() - 22 - 30, 0)))
                 {
                     friend.Selected = !friend.Selected;
                 }
@@ -134,7 +133,7 @@ public class DashboardView : IWindow
                 ImGui.SameLine();
                 SharedUserInterfaces.ColorText(friend.NoteOrId, SharedUserInterfaces.White);
 
-                ImGui.SameLine(ImGui.GetWindowWidth() - 25);
+                ImGui.SameLine(ImGui.GetWindowWidth() - 22 - 22);
                 var iconButton = MakeFriendConfigButtonArgs(friend.FriendCode);
                 if (SharedUserInterfaces.IconButton(iconButton))
                 {
@@ -158,7 +157,7 @@ public class DashboardView : IWindow
                 ImGui.SameLine();
                 SharedUserInterfaces.ColorText(friend.NoteOrId, SharedUserInterfaces.Grey);
 
-                ImGui.SameLine(ImGui.GetWindowWidth() - 25);
+                ImGui.SameLine(ImGui.GetWindowWidth() - 22 - 22);
                 var iconButton = MakeFriendConfigButtonArgs(friend.FriendCode);
                 if (SharedUserInterfaces.IconButton(iconButton))
                 {

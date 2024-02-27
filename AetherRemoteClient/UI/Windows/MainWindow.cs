@@ -26,8 +26,8 @@ public class MainWindow : Window
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(250, 400),
-            MaximumSize = new Vector2(250, 400)
+            MinimumSize = new Vector2(275, 425),
+            MaximumSize = new Vector2(275, 425)
         };
 
         // Configuration

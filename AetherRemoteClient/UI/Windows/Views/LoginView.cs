@@ -112,6 +112,7 @@ public class LoginView : IWindow
             var loggedInSuccessfully = await networkService.Commands.Login();
             if (loggedInSuccessfully)
             {
+                logger.Info("Beep");
                 mainWindow.SetCurrentViewToDashboard();
             }
             else
