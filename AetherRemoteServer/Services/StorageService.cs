@@ -58,7 +58,7 @@ namespace AetherRemoteServer.Services
             result.Add("8008", "llarry90202");
             result.Add("7621", "sophie66425");
             result.Add("0082", "kiani82221");
-            result.Add("0000", "mora00001");
+            result.Add("0000", "kianidoki");
             return result;
         }
 

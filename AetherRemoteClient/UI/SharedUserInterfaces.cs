@@ -33,10 +33,12 @@ public class SharedUserInterfaces
     private static IFontHandle? BigFont;
     private static bool BigFontBuilt = false;
     private const int BigFontSize = 40;
+    private const int BigFontDefaultOffset = 8;
 
     private static IFontHandle? MediumFont;
     private static bool MediumFontBuilt = false;
     private const int MediumFontSize = 24;
+    private const int MediumFontDefaultOffset = -4;
 
     public SharedUserInterfaces(Plugin plugin)
     {
@@ -117,6 +119,40 @@ public class SharedUserInterfaces
     public static void BigTextCentered(string text, int yOffset = 0, Vector4? color = null)
     {
         FontTextCentered(text, BigFont, BigFontBuilt, yOffset, color);
+    }
+
+    /// <summary>
+    /// Displays centered text with best fitting font size.
+    /// </summary>
+    public static void DynamicTextCentered(string text, float workingSpace, Vector4? color = null)
+    {
+        if (BigFontBuilt)
+        {
+            BigFont?.Push();
+            var bigTextWidth = ImGui.CalcTextSize(text).X;
+            BigFont?.Pop();
+
+            if (bigTextWidth <= workingSpace)
+            {
+                BigTextCentered(text, BigFontDefaultOffset, color);
+                return;
+            }
+        }
+
+        if (MediumFontBuilt)
+        {
+            MediumFont?.Push();
+            var mediumTextWidth = ImGui.CalcTextSize(text).X;
+            MediumFont?.Pop();
+
+            if (mediumTextWidth <= workingSpace)
+            {
+                MediumTextCentered(text, MediumFontDefaultOffset, color);
+                return;
+            }
+        }
+
+        TextCentered(text, 0, color);
     }
 
     /// <summary>

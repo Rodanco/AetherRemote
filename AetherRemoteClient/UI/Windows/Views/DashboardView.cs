@@ -66,19 +66,21 @@ public class DashboardView : IWindow
             return;
         }
 
-        var friendCode = networkService.FriendCode;
+        var friendCode = networkService.FriendCode ?? "Unknown";
 
         if (SharedUserInterfaces.IconButton(IconButtonArgs.CopyClipboard))
         {
-            ImGui.SetClipboardText(friendCode ?? "ERROR_01");
+            ImGui.SetClipboardText(friendCode);
             uiBuilder.AddNotification("Successfully copied id to clipboard", "Aether Remote", NotificationType.Success);
         }
 
         ImGui.SameLine();
 
-        SharedUserInterfaces.BigTextCentered(friendCode ?? "ERROR_01", 8, SharedUserInterfaces.Gold);
+        // 35 is the size of the buttons, 8 is the default padding. Yay magic numbers!
+        var workingSpace = ImGui.GetWindowWidth() - ((2 * 35) - (4 * 8));
+        SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, SharedUserInterfaces.Gold);
 
-        ImGui.SameLine(ImGui.GetWindowWidth() - 42);
+        ImGui.SameLine(ImGui.GetWindowWidth() - 35 - 8);
 
         if (SharedUserInterfaces.IconButton(IconButtonArgs.Settings))
         {
