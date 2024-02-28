@@ -70,20 +70,8 @@ public class ControlWindow : Window
 
     public override void Draw()
     {
-        // TODO: List selected friends
-
         #region Message
         SharedUserInterfaces.MediumText(chatMode.ToCondensedString(), SharedUserInterfaces.Gold);
-
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 30);
-        SharedUserInterfaces.Icon(FontAwesomeIcon.UserLock);
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.Text(string.Join("\n", selectedFriends.Select(x => x.NoteOrId)));
-            ImGui.EndTooltip();
-        }
 
         if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
         {
@@ -108,6 +96,16 @@ public class ControlWindow : Window
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200);
             ImGui.InputTextWithHint("###TellTarget", "Target", ref tellTarget, AetherRemoteConstants.PlayerNameCharLimit);
+        }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 30);
+        SharedUserInterfaces.Icon(FontAwesomeIcon.UserLock);
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.Text(string.Join("\n", selectedFriends.Select(x => x.NoteOrId)));
+            ImGui.EndTooltip();
         }
 
         if (SharedUserInterfaces.IconButton(chatModeButtonArgs))
