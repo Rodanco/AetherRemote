@@ -20,7 +20,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = true;
+    public static readonly bool DeveloperMode = false;
 
     public DalamudPluginInterface PluginInterface { get; init; }
     public ICommandManager CommandManager { get; init; }

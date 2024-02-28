@@ -1,0 +1,26 @@
+[
+  {
+    "Author": "Mora",
+    "Name": "Aether Remote",
+    "InternalName": "AetherRemote",
+    "AssemblyVersion": "1.0.0",
+    "Description": "Control other player's speech, emotes, and appearance.",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/aetherremote/AetherRemote",
+    "Tags": [
+      "control",
+      "speech",
+      "emotes",
+      "glamourer"
+    ],
+    "DalamudApiLevel": 9,
+    "LoadPriority": 0,
+    "IconUrl": "https://i.redd.it/7vw6dtzvw3jb1.jpg",
+    "Punchline": "Controlling all of the world!",
+    "IsHide": "False",
+    "IsTestingExclusive": "False",
+    "DownloadLinkInstall": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.0/AetherRemote1.0.0.zip",
+    "DownloadLinkTesting": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.0/AetherRemote1.0.0.zip",
+    "DownloadLinkUpdate": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.0/AetherRemote1.0.0.zip"
+  }
+]
