@@ -46,7 +46,7 @@ public class NetworkService : IDisposable
         connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
 
         Commands = new NetworkCommandInvoker(connection, this, saveService, logger);
-        Handler = new NetworkCommandHandler(connection, plugin.ChatService, plugin.EmoteService, plugin.GlamourerAccessor, 
+        Handler = new NetworkCommandHandler(connection, plugin.ActionQueueService, plugin.EmoteService, plugin.GlamourerAccessor, 
             logger, plugin.PluginInterface.Sanitizer, plugin.ClientState);
 
         connection.Closed += ConnectionClosed;

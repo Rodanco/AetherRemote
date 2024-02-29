@@ -41,7 +41,7 @@ public sealed class Plugin : IDalamudPlugin
     public FriendListService FriendListService { get; init; }
     public SaveService SaveService { get; init; }
     public EmoteService EmoteService { get; init; }
-    public ChatService ChatService { get; init; }
+    public ActionQueueService ActionQueueService { get; init; }
 
     public WindowSystem WindowSystem = new("AetherRemote");
     public ConfigWindow ConfigWindow { get; init; }
@@ -78,11 +78,12 @@ public sealed class Plugin : IDalamudPlugin
         GlamourerAccessor = new GlamourerAccessor(this);
 
         // Services
-        ChatService = new ChatService(this);
+        ActionQueueService = new ActionQueueService(this);
         EmoteService = new EmoteService(this);
         SaveService = new SaveService(this);
         NetworkService = new NetworkService(this);
         FriendListService = new FriendListService(this);
+        
 
         // Windows
         ConfigWindow = new ConfigWindow(this);
@@ -121,7 +122,7 @@ public sealed class Plugin : IDalamudPlugin
     private void DrawUI()
     {
         // Convenient way to do this
-        ChatService.Update();
+        ActionQueueService.Update();
 
         WindowSystem.Draw();
     }

@@ -16,7 +16,7 @@ namespace AetherRemoteClient.Services.Network;
 public class NetworkCommandHandler : IDisposable
 {
     private readonly EmoteService emoteService;
-    private readonly ChatService chatService;
+    private readonly ActionQueueService actionQueueService;
     private readonly GlamourerAccessor glamourerAccessor;
     private readonly IPluginLog logger;
     private readonly ISanitizer sanitizer;
@@ -24,7 +24,7 @@ public class NetworkCommandHandler : IDisposable
 
     public NetworkCommandHandler(
         HubConnection connection,
-        ChatService chatService,
+        ActionQueueService actionQueueService,
         EmoteService emoteService,
         GlamourerAccessor glamourerAccessor,
         IPluginLog logger, 
@@ -36,7 +36,7 @@ public class NetworkCommandHandler : IDisposable
         this.glamourerAccessor = glamourerAccessor;
         this.clientState = clientState;
         this.emoteService = emoteService;
-        this.chatService = chatService;
+        this.actionQueueService = actionQueueService;
 
         connection.On(AetherRemoteConstants.ApiSpeak, 
             (SpeakCommandExecute execute) => { HandleSpeakCommand(execute); });
@@ -50,6 +50,8 @@ public class NetworkCommandHandler : IDisposable
 
     public void HandleSpeakCommand(SpeakCommandExecute execute)
     {
+        // TODO: Client-Side validation???
+
         logger.Info($"HandleSpeakCommand: {execute}");
 
         if(!clientState.IsLoggedIn)
@@ -83,19 +85,13 @@ public class NetworkCommandHandler : IDisposable
         }
         
         var finalSanitizedString = sanitizer.Sanitize(completedChatCommand);
-
-        try
-        {
-            chatService.EnqueueCommand(finalSanitizedString);
-        }
-        catch(Exception ex)
-        {
-            logger.Warning($"Something went wrong when sending a message: {ex.Message}");
-        }
+        actionQueueService.EnqueueChatAction(execute.SenderFriendCode, finalSanitizedString);
     }
 
     public void HandleEmoteCommand(EmoteCommandExecute execute)
     {
+        // TODO: Client-Side validation???
+
         logger.Info($"HandleEmoteCommand recieved: {execute}");
 
         if (!clientState.IsLoggedIn)
@@ -118,18 +114,12 @@ public class NetworkCommandHandler : IDisposable
             return;
         }
 
-        try
-        {
-            chatService.EnqueueCommand(completedChatCommand);
-        }
-        catch (Exception ex)
-        {
-            logger.Warning($"Something went wrong trying to emote: {ex.Message}");
-        }
+        actionQueueService.EnqueueChatAction(execute.SenderFriendCode, completedChatCommand);
     }
 
     public void HandleBecomeCommand(BecomeCommandExecute execute)
     {
+        // TODO: Client-Side validation???
         logger.Info($"HandleBecomeCommand recieved: {execute}");
 
         if (!clientState.IsLoggedIn)
@@ -138,21 +128,7 @@ public class NetworkCommandHandler : IDisposable
             return;
         }
 
-        try
-        {
-            var player = clientState.LocalPlayer;
-            if (player == null)
-            {
-                logger.Info("Could not handle become command because the local player was not loaded at the time the command was recieved");
-                return;
-            }
-
-            glamourerAccessor.ApplyDesign(player.Name.ToString(), execute.GlamourerData, execute.GlamourerApplyType);
-        }
-        catch(Exception ex )
-        {
-            logger.Info($"Something went wrong trying to glamourer data: {ex.Message}");
-        }
+        actionQueueService.EnqueueGlamourerAction(execute.SenderFriendCode, execute.GlamourerData, execute.GlamourerApplyType);
     }
 
     /// <summary>
