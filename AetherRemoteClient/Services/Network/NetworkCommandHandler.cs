@@ -8,7 +8,6 @@ using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Plugin.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
-using System.Linq;
 using System.Text;
 
 namespace AetherRemoteClient.Services.Network;
@@ -17,10 +16,8 @@ public class NetworkCommandHandler : IDisposable
 {
     private readonly EmoteService emoteService;
     private readonly ActionQueueService actionQueueService;
-    private readonly GlamourerAccessor glamourerAccessor;
     private readonly IPluginLog logger;
     private readonly ISanitizer sanitizer;
-    private readonly IClientState clientState;
 
     public NetworkCommandHandler(
         HubConnection connection,
@@ -33,8 +30,6 @@ public class NetworkCommandHandler : IDisposable
     {
         this.logger = logger;
         this.sanitizer = sanitizer;
-        this.glamourerAccessor = glamourerAccessor;
-        this.clientState = clientState;
         this.emoteService = emoteService;
         this.actionQueueService = actionQueueService;
 
@@ -48,73 +43,45 @@ public class NetworkCommandHandler : IDisposable
             (BecomeCommandExecute execute) => { HandleBecomeCommand(execute); });
     }
 
-    public void HandleSpeakCommand(SpeakCommandExecute execute)
+    public void HandleSpeakCommand(SpeakCommandExecute speakCommand)
     {
         // TODO: Client-Side validation???
 
-        logger.Info($"HandleSpeakCommand: {execute}");
-
-        if(!clientState.IsLoggedIn)
-        {
-            logger.Info("Ignoring speak command, player not fully logged in.");
-            return;
-        }    
+        logger.Info($"HandleSpeakCommand: {speakCommand}");
 
         var chatCommand = new StringBuilder();
 
         chatCommand.Append('/');
-        chatCommand.Append(execute.Channel.ToChatCommand());
+        chatCommand.Append(speakCommand.Channel.ToChatCommand());
 
-        if (execute.Channel == ChatMode.Linkshell || execute.Channel == ChatMode.CrossworldLinkshell)
-            chatCommand.Append(execute.Extra);
+        if (speakCommand.Channel == ChatMode.Linkshell || speakCommand.Channel == ChatMode.CrossworldLinkshell)
+            chatCommand.Append(speakCommand.Extra);
 
         chatCommand.Append(' ');
 
-        if (execute.Channel == ChatMode.Tell)
-            chatCommand.Append(execute.Extra);
+        if (speakCommand.Channel == ChatMode.Tell)
+            chatCommand.Append(speakCommand.Extra);
 
-        var sanitizedMessage = SanitizeMessage(execute.Message);
-        chatCommand.Append(sanitizedMessage);
+        chatCommand.Append(speakCommand.Message);
 
-        var completedChatCommand = chatCommand.ToString();
-
-        if (completedChatCommand.Length > AetherRemoteConstants.SpeakCommandCharLimit)
-        {
-            logger.Warning($"Message too big! Message={completedChatCommand}");
-            return;
-        }
-        
-        var finalSanitizedString = sanitizer.Sanitize(completedChatCommand);
-        actionQueueService.EnqueueChatAction(execute.SenderFriendCode, finalSanitizedString);
+        var finalSanitizedString = sanitizer.Sanitize(chatCommand.ToString());
+        actionQueueService.EnqueueChatAction(speakCommand.SenderFriendCode, finalSanitizedString);
     }
 
-    public void HandleEmoteCommand(EmoteCommandExecute execute)
+    public void HandleEmoteCommand(EmoteCommandExecute emoteCommand)
     {
         // TODO: Client-Side validation???
 
-        logger.Info($"HandleEmoteCommand recieved: {execute}");
+        logger.Info($"HandleEmoteCommand recieved: {emoteCommand}");
 
-        if (!clientState.IsLoggedIn)
-        {
-            logger.Info("Ignoring speak command, player not fully logged in.");
-            return;
-        }
-
-        var validEmote = emoteService.GetEmotes().Contains(execute.Emote);
+        var validEmote = emoteService.GetEmotes().Contains(emoteCommand.Emote);
         if (validEmote == false)
         {
-            logger.Info($"Got invalid emote from server: [{execute.Emote}]");
+            logger.Info($"Got invalid emote from server: [{emoteCommand.Emote}]");
         }
 
-        var completedChatCommand = $"/{execute.Emote} mo";
-
-        if (completedChatCommand.Length > AetherRemoteConstants.SpeakCommandCharLimit)
-        {
-            logger.Warning($"Emote too big! Emote={completedChatCommand}");
-            return;
-        }
-
-        actionQueueService.EnqueueChatAction(execute.SenderFriendCode, completedChatCommand);
+        var completedChatCommand = $"/{emoteCommand.Emote} motion";
+        actionQueueService.EnqueueChatAction(emoteCommand.SenderFriendCode, completedChatCommand);
     }
 
     public void HandleBecomeCommand(BecomeCommandExecute execute)
@@ -122,22 +89,7 @@ public class NetworkCommandHandler : IDisposable
         // TODO: Client-Side validation???
         logger.Info($"HandleBecomeCommand recieved: {execute}");
 
-        if (!clientState.IsLoggedIn)
-        {
-            logger.Info("Ignoring speak command, player not fully logged in.");
-            return;
-        }
-
         actionQueueService.EnqueueGlamourerAction(execute.SenderFriendCode, execute.GlamourerData, execute.GlamourerApplyType);
-    }
-
-    /// <summary>
-    /// Removes all non-number, non-letter, non-whitespace characters from a message
-    /// </summary>
-    /// <returns></returns>
-    private static string SanitizeMessage(string message)
-    {
-        return new string(message.Where(c => char.IsLetterOrDigit(c) || char.IsDigit(c)).ToArray());
     }
 
     public void Dispose()

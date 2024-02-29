@@ -83,6 +83,7 @@ public class ActionQueueService
             // TODO: Send to log
             logger.Info($"Action: {action}");
 
+            // TODO: Explore possibility of DLQ
             if (clientState.LocalPlayer == null)
                 return;
 
@@ -109,6 +110,7 @@ public class ActionQueueService
             // TODO: Send to log
             logger.Info($"Action: {action}");
 
+            // TODO: Explore possibility of DLQ
             if (clientState.LocalPlayer == null)
                 return;
 
