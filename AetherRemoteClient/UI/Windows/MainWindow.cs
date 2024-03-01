@@ -1,4 +1,5 @@
 using AetherRemoteClient.Domain.Interfaces;
+using AetherRemoteClient.UI.Windows.Popups;
 using AetherRemoteClient.UI.Windows.Views;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;

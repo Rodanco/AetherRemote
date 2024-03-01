@@ -5,6 +5,7 @@ using Dalamud.Interface.Style;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -19,8 +20,6 @@ public class SharedUserInterfaces
     public static readonly Vector4 Green = new(0.33f, 1, 0.33f, 1);
     public static readonly Vector4 Blue = new(0.33f, 0.33f, 1, 1);
     public static readonly Vector4 White = Vector4.One;
-
-    private static readonly Vector2 DefaultIconButtonSize = new(28, 28);
 
     public static readonly ImGuiWindowFlags PopupWindowFlags =
         ImGuiWindowFlags.NoTitleBar |
@@ -61,21 +60,55 @@ public class SharedUserInterfaces
     }
 
     /// <summary>
-    /// Draws a button with an icon. Optional parameters via IconButtonArgs.
+    /// Calculates the size a button would be. Useful for UI alignment.
     /// </summary>
-    public static bool IconButton(IconButtonArgs args)
+    public static Vector2 CalculateIconButtonScaledSize(FontAwesomeIcon icon, float scale = 1.0f)
     {
         ImGui.PushFont(UiBuilder.IconFont);
 
-        if (args.Id is not null) ImGui.PushID(args.Id);
-        if (args.Offset is not null) ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, (Vector2)args.Offset);
-        if (args.Color is not null) ImGui.PushStyleColor(ImGuiCol.Text, (Vector4)args.Color);
+        var size = ImGui.CalcTextSize(icon.ToIconString()) + (ImGui.GetStyle().FramePadding * 2);
+        size.X = size.Y;
+        size *= scale;
 
-        var result = ImGui.Button(args.Icon.ToIconString(), args.Size ?? DefaultIconButtonSize);
+        ImGui.PopFont();
 
-        if (args.Color is not null) ImGui.PopStyleColor();
-        if (args.Offset is not null) ImGui.PopStyleVar();
-        if (args.Id is not null) ImGui.PopID();
+        return size;
+    }
+
+    /// <summary>
+    /// Draws a button with an icon.
+    /// </summary>
+    public static bool IconButtonScaled(FontAwesomeIcon icon, float scale = 1.0f, string? id = null)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+
+        if (id != null)
+            ImGui.PushID(id);
+
+        var result = ImGui.Button(icon.ToIconString(), CalculateIconButtonScaledSize(icon, scale));
+
+        if (id != null)
+            ImGui.PopID();
+
+        ImGui.PopFont();
+        return result;
+    }
+
+    /// <summary>
+    /// Draws a button with an icon. <br/>
+    /// Use this when <see cref="CalculateIconButtonScaledSize"/> is already calculated.
+    /// </summary>
+    public static bool IconButtonScaled(FontAwesomeIcon icon, Vector2 size, string? id = null)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+
+        if (id != null)
+            ImGui.PushID(id);
+
+        var result = ImGui.Button(icon.ToIconString(), size);
+
+        if (id != null)
+            ImGui.PopID();
 
         ImGui.PopFont();
         return result;

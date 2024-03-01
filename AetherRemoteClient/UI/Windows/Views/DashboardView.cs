@@ -33,6 +33,7 @@ public class DashboardView : IWindow
     // Popup Windows
     private readonly AddFriendPopup addFriendPopup;
     private readonly EditFriendPopup editFriendPopup;
+    private readonly FriendOptionSelectionPopup friendOptionSelectionPopup;
 
     private const ImGuiTreeNodeFlags TreeNodeFlags =
             ImGuiTreeNodeFlags.SpanFullWidth |
@@ -55,6 +56,7 @@ public class DashboardView : IWindow
         // Define Popups
         addFriendPopup = new AddFriendPopup(friendList);
         editFriendPopup = new EditFriendPopup(friendList);
+        friendOptionSelectionPopup = new FriendOptionSelectionPopup();
     }
 
     public void Draw()
@@ -65,9 +67,11 @@ public class DashboardView : IWindow
             return;
         }
 
+        var padding = ImGui.GetStyle().FramePadding;
+
         var friendCode = networkService.FriendCode ?? "Unknown";
 
-        if (SharedUserInterfaces.IconButton(IconButtonArgs.CopyClipboard))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Copy, 1.5f))
         {
             ImGui.SetClipboardText(friendCode);
             uiBuilder.AddNotification("Successfully copied id to clipboard", "Aether Remote", NotificationType.Success);
@@ -79,9 +83,9 @@ public class DashboardView : IWindow
         var workingSpace = ImGui.GetWindowWidth() - ((2 * 35) - (4 * 8));
         SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, SharedUserInterfaces.Gold);
 
-        ImGui.SameLine(ImGui.GetWindowWidth() - 35 - 8);
-
-        if (SharedUserInterfaces.IconButton(IconButtonArgs.Settings))
+        var configWindowButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.Wrench, 1.5f);
+        ImGui.SameLine(ImGui.GetWindowWidth() - configWindowButtonSize.X - 8);
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Wrench, 1.5f))
         {
             configWindow.IsOpen = true;
         }
@@ -89,18 +93,19 @@ public class DashboardView : IWindow
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - 50);
+        var addFriendButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserPlus);
+        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (padding.X * 6));
 
-        ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchByFriendIdOrNoteInput, 
+        ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchByFriendIdOrNoteInput,
             AetherRemoteConstants.FriendCodeCharLimit);
 
         ImGui.SameLine();
-        if (SharedUserInterfaces.IconButton(IconButtonArgs.AddFriend))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserPlus, addFriendButtonSize))
         {
-            ImGui.OpenPopup(addFriendPopup.Name);
+            ImGui.OpenPopup(friendOptionSelectionPopup.Name);
         }
-        
-        addFriendPopup.Draw();
+
+        friendOptionSelectionPopup.Draw();
 
         var filteredList = friendsListFilter.Filter(searchByFriendIdOrNoteInput);
         var filteredOnlineList = new List<Friend>();
@@ -113,39 +118,49 @@ public class DashboardView : IWindow
                 filteredOfflineList.Add(friend);
         }
 
-        var friendListAreaSize = ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - 52;
+        var friendListAreaSize = ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - 50;
         ImGui.BeginChild("FriendListArea", new Vector2(0, friendListAreaSize), false, ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (ImGui.TreeNodeEx("Online", TreeNodeFlags))
         {
             foreach (var friend in filteredOnlineList)
             {
-                if (ImGui.Selectable($"###Selectable_{friend.FriendCode}", friend.Selected,
-                    ImGuiSelectableFlags.SpanAllColumns, new Vector2(ImGui.GetWindowWidth() - 22 - 30, 0)))
+                var userSettingButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserCog, 1.0f);
+                ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.1f, 0.5f));
+
+                var selectableId = $"{friend.NoteOrId}###{friend.FriendCode}";
+                //var selectableSize = new Vector2(ImGui.GetWindowWidth() - (padding.X * 8) - userSettingButtonSize.X, userSettingButtonSize.Y);
+                var selectableSize = new Vector2(0, userSettingButtonSize.Y);
+
+                if (ImGui.Selectable(selectableId, friend.Selected, ImGuiSelectableFlags.SpanAllColumns, selectableSize))
                 {
                     friend.Selected = !friend.Selected;
                 }
 
+                ImGui.SetItemAllowOverlap();
+
+                ImGui.PopStyleVar();
+
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(15);
+                ImGui.SetCursorPosX(8);
                 SharedUserInterfaces.Icon(FontAwesomeIcon.User, SharedUserInterfaces.Green);
 
-                ImGui.SameLine();
-                SharedUserInterfaces.ColorText(friend.NoteOrId, SharedUserInterfaces.White);
+                //ImGui.SameLine();
+                //SharedUserInterfaces.ColorText(friend.NoteOrId, SharedUserInterfaces.White);
 
                 ImGui.SameLine(ImGui.GetWindowWidth() - 22 - 22);
-                var iconButton = MakeFriendConfigButtonArgs(friend.FriendCode);
-                if (SharedUserInterfaces.IconButton(iconButton))
+                if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserCog, userSettingButtonSize, $"{friend.FriendCode}-SettingsButton"))
                 {
-                    friend.Selected = false;
                     editFriendPopup.Open(friend);
                 }
+                
             }
 
             editFriendPopup.Draw();
 
             ImGui.TreePop();
         }
+        
 
         if (ImGui.TreeNodeEx("Offline", TreeNodeFlags))
         {
@@ -158,8 +173,7 @@ public class DashboardView : IWindow
                 SharedUserInterfaces.ColorText(friend.NoteOrId, SharedUserInterfaces.Grey);
 
                 ImGui.SameLine(ImGui.GetWindowWidth() - 22 - 22);
-                var iconButton = MakeFriendConfigButtonArgs(friend.FriendCode);
-                if (SharedUserInterfaces.IconButton(iconButton))
+                if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserCog, 1.0f, $"{friend.FriendCode}-SettingsButton"))
                 {
                     editFriendPopup.Open(friend);
                 }
@@ -179,16 +193,5 @@ public class DashboardView : IWindow
             networkService.StartSession(friendList.SelectedFriends);
         }
         if (friendListCount) ImGui.EndDisabled();
-    }
-
-    private static IconButtonArgs MakeFriendConfigButtonArgs(string friendId)
-    {
-        return new IconButtonArgs()
-        {
-            Icon = FontAwesomeIcon.UserCog,
-            Id = $"{friendId}-Settings",
-            Size = new Vector2(22, 22),
-            Offset = new Vector2(0, -5)
-        };
     }
 }

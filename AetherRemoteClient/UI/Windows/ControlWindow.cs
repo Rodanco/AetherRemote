@@ -17,10 +17,6 @@ namespace AetherRemoteClient.UI.Windows;
 
 public class ControlWindow : Window
 {
-    private readonly IconButtonArgs chatModeButtonArgs = new(FontAwesomeIcon.Comment, null, new Vector2(28, 25), new Vector2(5, 1));
-    private readonly IconButtonArgs emoteButtonArgs = new(FontAwesomeIcon.Play, null, new Vector2(28, 25));
-    private readonly IconButtonArgs getTargetGlamourerDataButtonArgs = new(FontAwesomeIcon.Crosshairs, null, new Vector2(28, 25), new Vector2(4, 0));
-
     private readonly List<Friend> selectedFriends;
     private readonly IPluginLog logger;
     private readonly ITargetManager targetManager;
@@ -108,7 +104,7 @@ public class ControlWindow : Window
             ImGui.EndTooltip();
         }
 
-        if (SharedUserInterfaces.IconButton(chatModeButtonArgs))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Comment))
         {
             ImGui.OpenPopup("ChatModeSelector");
         }
@@ -153,7 +149,7 @@ public class ControlWindow : Window
         
         ImGui.SameLine();
         
-        if (SharedUserInterfaces.IconButton(emoteButtonArgs))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Play))
         {
             networkService.Commands.IssueEmoteCommand(selectedFriends, emote);
         }
@@ -169,7 +165,7 @@ public class ControlWindow : Window
 
         if (!glamourerAccessor.IsGlamourerInstalled) ImGui.BeginDisabled();
 
-        if (SharedUserInterfaces.IconButton(getTargetGlamourerDataButtonArgs))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Crosshairs))
         {
             var target = targetManager.Target;
             if (target == null)

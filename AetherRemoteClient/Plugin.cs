@@ -84,7 +84,6 @@ public sealed class Plugin : IDalamudPlugin
         NetworkService = new NetworkService(this);
         FriendListService = new FriendListService(this);
         
-
         // Windows
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this);
