@@ -1,208 +1,92 @@
-using AetherRemoteClient.Accessors.Glamourer;
-using AetherRemoteClient.Domain;
-using AetherRemoteClient.Services.Network;
-using AetherRemoteClient.UI.Windows;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Interface.Windowing;
+using AetherRemoteClient.Components;
+using AetherRemoteCommon;
+using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.Network.Become;
+using AetherRemoteCommon.Domain.Network.Emote;
+using AetherRemoteCommon.Domain.Network.Speak;
+using Dalamud.Game.Text.Sanitizer;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.AspNetCore.SignalR.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Services;
 
-public class NetworkService : IDisposable
+public class NetworkService
 {
     // Injected
     private readonly IPluginLog logger;
-    private readonly SaveService saveService;
+    private readonly ISanitizer sanitizer;
 
-    // Instantiated
-    private readonly SessionManager sessionManager;
+    // Providers
+    private readonly ActionQueueProvider actionQueueProvider;
+    private readonly EmoteProvider emoteProvider;
 
-    // Network Variables
-    private readonly HubConnection connection;
-    private const string ConnectionUrl = "http://75.73.3.71:25565/mainHub";
-
-    // Handlers
-    public readonly NetworkCommandInvoker Commands;
-    public readonly NetworkCommandHandler Handler;
-
-    // Public
-    public string? FriendCode = null;
-    public HubConnectionState ConnectionStatus => connection.State;
-
-    public NetworkService(Plugin plugin)
+    public NetworkService(IPluginLog logger, DalamudPluginInterface pluginInterface, NetworkProvider networkProvider, 
+        ActionQueueProvider actionQueueProvider, EmoteProvider emoteProvider)
     {
-        logger = plugin.Logger;
-        saveService = plugin.SaveService;
+        this.logger = logger;
+        this.sanitizer = pluginInterface.Sanitizer;
 
-        sessionManager = new(logger, plugin.TargetManager, this, plugin.WindowSystem, plugin.EmoteService, plugin.GlamourerAccessor);
+        this.actionQueueProvider = actionQueueProvider;
+        this.emoteProvider = emoteProvider;
 
-        connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
+        networkProvider.Connection.On(AetherRemoteConstants.ApiSpeak,
+            (SpeakCommandExecute execute) => { HandleSpeakCommand(execute); });
 
-        Commands = new NetworkCommandInvoker(connection, this, saveService, logger);
-        Handler = new NetworkCommandHandler(connection, plugin.ActionQueueService, plugin.EmoteService, plugin.GlamourerAccessor, 
-            logger, plugin.PluginInterface.Sanitizer, plugin.ClientState);
+        networkProvider.Connection.On(AetherRemoteConstants.ApiEmote,
+            (EmoteCommandExecute execute) => { HandleEmoteCommand(execute); });
 
-        connection.Closed += ConnectionClosed;
+        networkProvider.Connection.On(AetherRemoteConstants.ApiBecome,
+            (BecomeCommandExecute execute) => { HandleBecomeCommand(execute); });
     }
 
-    public void StartSession(List<Friend> selectedFriends)
+    public void HandleSpeakCommand(SpeakCommandExecute speakCommand)
     {
-        sessionManager.MakeSession(selectedFriends);
+        // TODO: Client-Side validation???
+
+        logger.Info($"HandleSpeakCommand: {speakCommand}");
+
+        var chatCommand = new StringBuilder();
+
+        chatCommand.Append('/');
+        chatCommand.Append(speakCommand.Channel.ToChatCommand());
+
+        if (speakCommand.Channel == ChatMode.Linkshell || speakCommand.Channel == ChatMode.CrossworldLinkshell)
+            chatCommand.Append(speakCommand.Extra);
+
+        chatCommand.Append(' ');
+
+        if (speakCommand.Channel == ChatMode.Tell)
+            chatCommand.Append(speakCommand.Extra);
+
+        chatCommand.Append(speakCommand.Message);
+
+        var finalSanitizedString = sanitizer.Sanitize(chatCommand.ToString());
+        actionQueueProvider.EnqueueChatAction(speakCommand.SenderFriendCode, finalSanitizedString);
     }
 
-    public void EndSession(int hash)
+    public void HandleEmoteCommand(EmoteCommandExecute emoteCommand)
     {
-        sessionManager.EndSession(hash);
+        // TODO: Client-Side validation???
+
+        logger.Info($"HandleEmoteCommand recieved: {emoteCommand}");
+
+        var validEmote = emoteProvider.Emotes.Contains(emoteCommand.Emote);
+        if (validEmote == false)
+        {
+            logger.Info($"Got invalid emote from server: [{emoteCommand.Emote}]");
+        }
+
+        var completedChatCommand = $"/{emoteCommand.Emote} motion";
+        actionQueueProvider.EnqueueChatAction(emoteCommand.SenderFriendCode, completedChatCommand);
     }
 
-    public async Task<bool> Connect()
+    public void HandleBecomeCommand(BecomeCommandExecute execute)
     {
-        if (Plugin.DeveloperMode) return true;
-        if (connection.State != HubConnectionState.Disconnected) return false;
+        // TODO: Client-Side validation???
+        logger.Info($"HandleBecomeCommand recieved: {execute}");
 
-        logger.Info($"Attempting to connecting to server");
-
-        try
-        {
-            await Task.Run(() => connection.StartAsync());
-
-            if (connection.State == HubConnectionState.Connected)
-            {
-                logger.Info($"Successfully connected to server");
-                return true;
-            }
-        }
-        catch (HttpRequestException)
-        {
-            logger.Info($"Connection refused! The server is likely down");
-        }
-        catch (Exception ex)
-        {
-            logger.Info(ex.Message);
-        }
-
-        logger.Info($"Failed to connect to server");
-        return false;
-    }
-
-    public async void Disconnect()
-    {
-        if (connection.State == HubConnectionState.Disconnected) return;
-        await Task.Run(() => connection.StopAsync());
-    }
-
-    public void Dispose()
-    {
-        if (connection.State != HubConnectionState.Disconnected)
-            Disconnect();
-
-        connection.Closed -= ConnectionClosed;
-        GC.SuppressFinalize(this);
-    }
-
-    private Task ConnectionClosed(Exception? exception)
-    {
-        if (exception != null)
-            logger.Info($"Connection closed with exception: {exception.Message}");
-
-        sessionManager.EndAllSessions();
-        return Task.CompletedTask;
-    }
-
-    private class SessionManager
-    {
-        // Injected
-        private readonly WindowSystem windowSystem;
-        private readonly IPluginLog logger;
-        private readonly ITargetManager targetManager;
-        private readonly EmoteService emoteService;
-        private readonly NetworkService networkService;
-        private readonly GlamourerAccessor glamourerAccessor;
-
-        private readonly Dictionary<int, ControlWindow> windows = new();
-
-        public SessionManager(IPluginLog logger, ITargetManager targetManager, NetworkService networkService,
-            WindowSystem windowSystem, EmoteService emoteService, GlamourerAccessor glamourerAccessor)
-        {
-            this.windowSystem = windowSystem;
-            this.logger = logger;
-            this.targetManager = targetManager;
-            this.emoteService = emoteService;
-            this.networkService = networkService;
-            this.glamourerAccessor = glamourerAccessor;
-        }
-
-        public void MakeSession(List<Friend> selectedFriends)
-        {
-            if (selectedFriends.Count == 0) return;
-
-            var sb = new StringBuilder();
-            var hash = ComputeHash(selectedFriends);
-            if (windows.ContainsKey(hash))
-            {
-                logger.Info("Already controlling these people");
-                return;
-            }
-
-            sb.Append(selectedFriends.OrderBy(friend => friend.NoteOrId).First().NoteOrId);
-            if (selectedFriends.Count > 1)
-            {
-                sb.Append(" and ");
-                sb.Append(selectedFriends.Count - 1);
-                sb.Append(" other");
-                if (selectedFriends.Count > 2)
-                    sb.Append('s');
-            }
-            sb.Append(" [");
-            sb.Append(hash.ToString("X8"));
-            sb.Append(']');
-
-            var window = new ControlWindow(sb.ToString(), hash, selectedFriends, logger, targetManager, emoteService, networkService, glamourerAccessor);
-            windowSystem.AddWindow(window);
-            window.IsOpen = true;
-
-            windows.Add(hash, window);
-        }
-
-        public void EndSession(int hash)
-        {
-            if (windows.TryGetValue(hash, out var window))
-            {
-                if (window == null) 
-                    return;
-
-                RemoveWindow(hash, window);
-            }
-        }
-
-        public void EndAllSessions()
-        {
-            foreach (var kvp in windows)
-            {
-                var hash = kvp.Key;
-                var window = kvp.Value;
-
-                RemoveWindow(hash, window);
-            }
-        }
-
-        private void RemoveWindow(int hash, Window window)
-        {
-            window.IsOpen = false;
-            windowSystem.RemoveWindow(window);
-            windows.Remove(hash);
-        }
-
-        private static int ComputeHash(List<Friend> selectedFriends)
-        {
-            return string.Join("", selectedFriends.OrderBy(friend => friend.FriendCode)).GetHashCode();
-        }
+        actionQueueProvider.EnqueueGlamourerAction(execute.SenderFriendCode, execute.GlamourerData, execute.GlamourerApplyType);
     }
 }

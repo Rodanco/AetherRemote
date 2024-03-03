@@ -1,3 +1,4 @@
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
 using Dalamud.Plugin.Services;
 using System.Collections.Generic;
@@ -8,22 +9,28 @@ namespace AetherRemoteClient.Services;
 
 public class FriendListService
 {
-    private readonly NetworkService networkModule;
-    private readonly SaveService saveService;
+    // Injected
     private readonly IPluginLog logger;
 
-    public List<Friend> Friends { get; private set; }
+    // Providers
+    private readonly NetworkProvider networkProvider;
+    private readonly FriendListProvider friendListProvider;
+    private readonly SecretProvider secretProvider;
+    
+    public List<Friend> FriendList { get; private set; }
     public List<Friend> SelectedFriends => GetSelectedFriends();
 
-    public FriendListService(Plugin plugin)
+    public FriendListService(IPluginLog logger, NetworkProvider networkProvider, 
+        FriendListProvider friendListProvider, SecretProvider secretProvider)
     {
-        networkModule = plugin.NetworkService;
-        saveService = plugin.SaveService;
-        logger = plugin.Logger;
+        this.logger = logger;
+        this.networkProvider = networkProvider;
+        this.friendListProvider = friendListProvider;
+        this.secretProvider = secretProvider;
 
         if (Plugin.DeveloperMode)
         {
-            Friends = new List<Friend>()
+            FriendList = new List<Friend>()
             {
                 new Friend("Demo10") { Online = true },
                 new Friend("Demo20") { Online = true },
@@ -37,24 +44,24 @@ public class FriendListService
         }
         else
         {
-            Friends = saveService.FriendList;
+            FriendList = friendListProvider.FriendList;
         }
     }
 
     public async Task<AsyncResult> AddFriend(Friend newFriend)
     {
-        var alreadyFriends = Friends.Any(friend => friend.FriendCode == newFriend.FriendCode);
+        var alreadyFriends = FriendList.Any(friend => friend.FriendCode == newFriend.FriendCode);
         if (alreadyFriends)
         {
             return new AsyncResult(false, "Friend already exists");
         }
         else
         {
-            var result = await networkModule.Commands.CreateOrUpdateFriend(newFriend);
+            var result = await networkProvider.CreateOrUpdateFriend(secretProvider.Secret, newFriend);
             if (result.Success)
             {
-                Friends.Add(newFriend);
-                saveService.SaveAll();
+                FriendList.Add(newFriend);
+                friendListProvider.Save();
             }
 
             return result;
@@ -63,18 +70,18 @@ public class FriendListService
 
     public async void UpdateFriend(Friend oldFriendData, Friend newFriendData)
     {
-        var successful = await networkModule.Commands.CreateOrUpdateFriend(newFriendData);
+        var successful = await networkProvider.CreateOrUpdateFriend(secretProvider.Secret, newFriendData);
         if (!successful.Success)
         {
             logger.Info("[Update Friend] Friend update unsuccessful.");
             return;
         }
 
-        for (var i = 0; i < Friends.Count; i++)
+        for (var i = 0; i < FriendList.Count; i++)
         {
-            if (Friends[i].FriendCode == oldFriendData.FriendCode)
+            if (FriendList[i].FriendCode == oldFriendData.FriendCode)
             {
-                Friends[i] = newFriendData;
+                FriendList[i] = newFriendData;
                 return;
             }
         }
@@ -84,18 +91,18 @@ public class FriendListService
 
     public async void RemoveFriend(Friend friend)
     {
-        var successful = await networkModule.Commands.DeleteFriend(friend);
-        if (!successful)
+        var successful = await networkProvider.DeleteFriend(secretProvider.Secret,friend);
+        if (!successful.Success)
         {
             logger.Info("[Remove Friend] Remove friend unsuccessful.");
             return;
         }
 
-        for (var i = 0; i < Friends.Count; i++)
+        for (var i = 0; i < FriendList.Count; i++)
         {
-            if (Friends[i].FriendCode == friend.FriendCode)
+            if (FriendList[i].FriendCode == friend.FriendCode)
             {
-                Friends.RemoveAt(i);
+                FriendList.RemoveAt(i);
                 return;
             }
         }
@@ -103,8 +110,13 @@ public class FriendListService
         logger.Warning("[Remove Friend] Friend not found.");
     }
 
+    public bool IsOnFriendList(Friend friendInQuestion)
+    {
+        return FriendList.Any(friend => friend.FriendCode == friendInQuestion.FriendCode);
+    }
+
     private List<Friend> GetSelectedFriends()
     {
-        return Friends.Where(friend => friend.Selected).ToList();
+        return FriendList.Where(friend => friend.Selected).ToList();
     }
 }

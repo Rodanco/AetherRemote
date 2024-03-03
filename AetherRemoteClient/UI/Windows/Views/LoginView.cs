@@ -1,3 +1,4 @@
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
@@ -10,6 +11,20 @@ namespace AetherRemoteClient.UI.Windows.Views;
 
 public class LoginView : IWindow
 {
+    // Injected
+    private readonly IPluginLog logger;
+
+    //
+    private readonly Configuration configuration;
+    private readonly MainWindow mainWindow;
+
+    // Provider
+    private readonly NetworkProvider networkProvider;
+    private readonly SecretProvider secretProvider;
+
+    // Service
+    private readonly FriendListService friendListService;
+
     private string secretInputBoxValue;
     private bool shouldAutoLoginCheckboxValue;
 
@@ -18,25 +33,20 @@ public class LoginView : IWindow
         ImGuiInputTextFlags.EnterReturnsTrue |
         ImGuiInputTextFlags.Password;
 
-    private readonly Configuration configuration;
-    private readonly NetworkService networkService;
-    private readonly MainWindow mainWindow;
-    private readonly IPluginLog logger;
-    private readonly SaveService saveService;
-
     private bool pendingLogin = false;
     private bool attemptingLogin = false;
 
-    public LoginView(Plugin plugin, MainWindow mainWindow)
+    public LoginView(IPluginLog logger, MainWindow mainWindow, Configuration configuration, NetworkProvider networkProvider,
+        SecretProvider secretProvider, FriendListService friendListService)
     {
-        configuration = plugin.Configuration;
-        networkService = plugin.NetworkService;
-        logger = plugin.Logger;
-        saveService = plugin.SaveService;
-
+        this.logger = logger;
+        this.configuration = configuration;
         this.mainWindow = mainWindow;
+        this.networkProvider = networkProvider;
+        this.secretProvider = secretProvider;
+        this.friendListService = friendListService;
 
-        secretInputBoxValue = saveService.Secret;
+        secretInputBoxValue = secretProvider.Secret;
         shouldAutoLoginCheckboxValue = configuration.AutoConnect;
     }
 
@@ -103,21 +113,20 @@ public class LoginView : IWindow
     {
         attemptingLogin = true;
 
-        saveService.Secret = secretInputBoxValue;
-        saveService.SaveAll();
+        secretProvider.Secret = secretInputBoxValue;
+        secretProvider.Save();
 
-        var connectedSuccessfully = await networkService.Connect();
-        if (connectedSuccessfully)
+        var connectResult = await networkProvider.Connect();
+        if (connectResult.Success)
         {
-            var loggedInSuccessfully = await networkService.Commands.Login();
-            if (loggedInSuccessfully)
+            var loginResult = await networkProvider.Login(secretProvider.Secret, friendListService.FriendList);
+            if (loginResult.Success)
             {
-                logger.Info("Beep");
                 mainWindow.SetCurrentViewToDashboard();
             }
             else
             {
-                networkService.Disconnect();
+                _ = networkProvider.Disconnect();
             }
         }
         

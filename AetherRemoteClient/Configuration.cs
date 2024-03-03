@@ -22,6 +22,11 @@ public class Configuration : IPluginConfiguration
     /// </summary>
     public bool AutoReconnect { get; set; } = true;
 
+    /// <summary>
+    /// Should the plugin log almost everything in /xllog
+    /// </summary>
+    public bool VerboseLogging { get; set; } = true;
+
     [NonSerialized]
     private DalamudPluginInterface? pluginInterface;
 

@@ -11,9 +11,12 @@ public class AsyncResult
         Message = string.Empty;
     }
 
-    public AsyncResult(bool success, string message)
+    public AsyncResult(bool success, string message = "")
     {
         Success = success;
         Message = message;
     }
+
+    public static readonly AsyncResult Successful = new(true, string.Empty);
+    public static readonly AsyncResult Failure = new(false, string.Empty);
 }

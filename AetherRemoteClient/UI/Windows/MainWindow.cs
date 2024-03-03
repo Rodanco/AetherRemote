@@ -1,7 +1,10 @@
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain.Interfaces;
-using AetherRemoteClient.UI.Windows.Popups;
+using AetherRemoteClient.Services;
 using AetherRemoteClient.UI.Windows.Views;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System.Numerics;
 
@@ -9,9 +12,6 @@ namespace AetherRemoteClient.UI.Windows;
 
 public class MainWindow : Window
 {
-    // Configuration
-    private readonly Configuration configuration;
-
     // Views
     private readonly DashboardView dashboardView;
     private readonly LoginView loginView;
@@ -23,7 +23,16 @@ public class MainWindow : Window
         ImGuiWindowFlags.NoScrollWithMouse |
         ImGuiWindowFlags.NoResize;
 
-    public MainWindow(Plugin plugin) : base("Aether Remote", MainWindowWindowFlags)
+    public MainWindow(
+        IPluginLog logger,
+        DalamudPluginInterface pluginInterface,
+        ConfigWindow configWindow,
+        Configuration configuration,
+        NetworkProvider networkProvider,
+        SecretProvider secretProvider,
+        FriendListService friendListService,
+        SessionManagerService sessionManagerService
+        ) : base("Aether Remote", MainWindowWindowFlags)
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -31,13 +40,10 @@ public class MainWindow : Window
             MaximumSize = new Vector2(275, 425)
         };
 
-        // Configuration
-        configuration = plugin.Configuration;
-
         // Views
-        dashboardView = new DashboardView(plugin, this);
-        loginView = new LoginView(plugin, this);
-
+        dashboardView = new DashboardView(logger, pluginInterface, this, configWindow, configuration, networkProvider, friendListService, sessionManagerService);
+        loginView = new LoginView(logger, this, configuration, networkProvider, secretProvider, friendListService);
+        
         currentView = loginView;
 
         if (configuration.AutoConnect)

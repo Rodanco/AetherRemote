@@ -1,4 +1,5 @@
 using AetherRemoteClient.Accessors.Glamourer;
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
 using AetherRemoteClient.UI.Windows;
@@ -21,31 +22,25 @@ public sealed class Plugin : IDalamudPlugin
     /// the server is invoked.
     /// </summary>
     public static readonly bool DeveloperMode = true;
-
+    
+    // Injected
     public DalamudPluginInterface PluginInterface { get; init; }
     public ICommandManager CommandManager { get; init; }
-    public IClientState ClientState { get; init; }
-    public IChatGui ChatGui { get; init; }
-    public IDataManager DataManager { get; init; }
-    public ITargetManager TargetManager { get; init; }
-    public Chat Chat { get; init; }
 
+    // Instantiated
     public Configuration Configuration { get; init; }
     public SharedUserInterfaces SharedUserInterfaces { get; init; }
 
+    // Accessors
     public GlamourerAccessor GlamourerAccessor { get; init; }
-    public IPluginLog Logger { get; init; }
 
-    // Services
-    public NetworkService NetworkService { get; init; }
-    public FriendListService FriendListService { get; init; }
-    public SaveService SaveService { get; init; }
-    public EmoteService EmoteService { get; init; }
-    public ActionQueueService ActionQueueService { get; init; }
+    // Providers
+    public ActionQueueProvider ActionQueueProvider { get; init; }
 
-    public WindowSystem WindowSystem = new("AetherRemote");
-    public ConfigWindow ConfigWindow { get; init; }
+    // Windows
+    public WindowSystem WindowSystem  { get; init; }
     public MainWindow MainWindow { get; init; }
+    public ConfigWindow ConfigWindow { get; init; }
 
     public Plugin(
         DalamudPluginInterface pluginInterface,
@@ -57,36 +52,39 @@ public sealed class Plugin : IDalamudPlugin
         IPluginLog logger,
         IChatGui chatGUI)
     {
-        Logger = logger;
-        ChatGui = chatGUI;
-        ClientState = clientState;
-        DataManager = dataManager;
-        TargetManager = targetManager;
         CommandManager = commandManager;
         PluginInterface = pluginInterface;
+
+        WindowSystem = new WindowSystem("AetherRemote");
 
         Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(pluginInterface);
 
         // Used in UI events
-        SharedUserInterfaces = new SharedUserInterfaces(this);
+        SharedUserInterfaces = new SharedUserInterfaces(logger, pluginInterface);
 
         // Used to send messages to the server
-        Chat = new XivCommonBase(pluginInterface).Functions.Chat;
+        var Chat = new XivCommonBase(pluginInterface).Functions.Chat;
 
         // Accessors
-        GlamourerAccessor = new GlamourerAccessor(this);
+        GlamourerAccessor = new GlamourerAccessor(logger, pluginInterface);
+
+        // Providers
+        var EmoteProvider = new EmoteProvider(dataManager);
+        var FriendListProvider = new FriendListProvider(pluginInterface);
+        var SecretProvider = new SecretProvider(pluginInterface);
+        var NetworkProvider = new NetworkProvider(logger);
+        ActionQueueProvider = new ActionQueueProvider(logger, clientState, Chat, GlamourerAccessor);
 
         // Services
-        ActionQueueService = new ActionQueueService(this);
-        EmoteService = new EmoteService(this);
-        SaveService = new SaveService(this);
-        NetworkService = new NetworkService(this);
-        FriendListService = new FriendListService(this);
+        var NetworkService = new NetworkService(logger, pluginInterface, NetworkProvider, ActionQueueProvider, EmoteProvider);
+        var FriendListService = new FriendListService(logger, NetworkProvider, FriendListProvider, SecretProvider);
+        var SessionManagerService = new SessionManagerService(logger, targetManager, WindowSystem, 
+            GlamourerAccessor, NetworkProvider, EmoteProvider, SecretProvider);
         
         // Windows
-        ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this);
+        ConfigWindow = new ConfigWindow();
+        MainWindow = new MainWindow(logger, pluginInterface, ConfigWindow, Configuration, NetworkProvider, SecretProvider, FriendListService, SessionManagerService);
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(MainWindow);
 
@@ -103,7 +101,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        NetworkService.Dispose();
         GlamourerAccessor.Dispose();
 
         WindowSystem.RemoveAllWindows();
@@ -121,7 +118,7 @@ public sealed class Plugin : IDalamudPlugin
     private void DrawUI()
     {
         // Convenient way to do this
-        ActionQueueService.Update();
+        ActionQueueProvider.Update();
 
         WindowSystem.Draw();
     }
