@@ -5,30 +5,19 @@ using System;
 using System.Collections.Concurrent;
 using XivCommon.Functions;
 
-namespace AetherRemoteClient.Services;
+namespace AetherRemoteClient.Components;
 
 /// <summary>
 /// Queues actions on the main XIV thread.
 /// </summary>
-public class ActionQueueService
+public class ActionQueueProvider
 {
-    // Injected
-    private readonly Chat chat;
-    private readonly GlamourerAccessor glamourerAccessor;
-    private readonly IPluginLog logger;
-    private readonly IClientState clientState;
-
+    // Data
     private readonly GlamourerActionQueue glamourerActionQueue;
     private readonly ChatActionQueue chatActionQueue;
 
-    public ActionQueueService(Plugin plugin)
+    public ActionQueueProvider(IPluginLog logger, IClientState clientState, Chat chat, GlamourerAccessor glamourerAccessor)
     {
-        // Inject
-        chat = plugin.Chat;
-        glamourerAccessor = plugin.GlamourerAccessor;
-        logger = plugin.Logger;
-        clientState = plugin.ClientState;
-
         glamourerActionQueue = new GlamourerActionQueue(logger, clientState, glamourerAccessor);
         chatActionQueue = new ChatActionQueue(logger, clientState, chat);
     }
@@ -195,7 +184,7 @@ public class ActionQueueService
     {
         public string Command;
 
-        public ChatAction(string sender, string command) : base (sender)
+        public ChatAction(string sender, string command) : base(sender)
         {
             Command = command;
         }
@@ -211,7 +200,7 @@ public class ActionQueueService
         public string Data;
         public GlamourerApplyType ApplyType;
 
-        public GlamourerAction(string sender, string data, GlamourerApplyType applyType) : base (sender)
+        public GlamourerAction(string sender, string data, GlamourerApplyType applyType) : base(sender)
         {
             Data = data;
             ApplyType = applyType;

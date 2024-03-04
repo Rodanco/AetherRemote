@@ -39,10 +39,10 @@ public class SharedUserInterfaces
     private const int MediumFontSize = 24;
     private const int MediumFontDefaultOffset = -4;
 
-    public SharedUserInterfaces(Plugin plugin)
+    public SharedUserInterfaces(IPluginLog logger, DalamudPluginInterface pluginInterface)
     {
-        pluginInterface = plugin.PluginInterface;
-        logger = plugin.Logger;
+        this.pluginInterface = pluginInterface;
+        this.logger = logger;
 
         Task.Run(BuildDefaultFontExtraSizes);
     }

@@ -1,4 +1,5 @@
 using AetherRemoteClient.Accessors.Glamourer;
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
@@ -17,14 +18,25 @@ namespace AetherRemoteClient.UI.Windows;
 
 public class ControlWindow : Window
 {
-    private readonly List<Friend> selectedFriends;
+    // Injected
     private readonly IPluginLog logger;
     private readonly ITargetManager targetManager;
-    private readonly EmoteService emoteService;
-    private readonly NetworkService networkService;
-    private readonly GlamourerAccessor glamourerAccessor;
-    private readonly int hash;
 
+    // Accessors
+    private readonly GlamourerAccessor glamourerAccessor;
+
+    // Providers
+    private readonly NetworkProvider networkProvider;
+    private readonly EmoteProvider emoteProvider;
+    private readonly SecretProvider secretProvider;
+
+    // Services
+    private readonly SessionManagerService sessionManagerService;
+
+    // Data
+    private readonly List<Friend> selectedFriends;
+    private readonly int hash;
+    
     private ChatMode chatMode = ChatMode.Say;
     private int shellNumber = 1;
     private bool applyCustomization = true;
@@ -40,14 +52,16 @@ public class ControlWindow : Window
         ImGuiWindowFlags.NoResize;
 
     public ControlWindow(
-        string windowName, 
-        int hash,
-        List<Friend> selectedFriends,
         IPluginLog logger,
         ITargetManager targetManager,
-        EmoteService emoteService,
-        NetworkService networkService,
-        GlamourerAccessor glamourerAccessor) : base(windowName, ControlWindowFlags)
+        GlamourerAccessor glamourerAccessor,
+        NetworkProvider networkProvider,
+        EmoteProvider emoteProvider,
+        SecretProvider secretProvider,
+        SessionManagerService sessionManagerService,
+        int hash,
+        List<Friend> selectedFriends,
+        string windowName) : base(windowName, ControlWindowFlags)
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -55,13 +69,19 @@ public class ControlWindow : Window
             MaximumSize = new Vector2(400, 250)
         };
 
-        this.selectedFriends = selectedFriends;
         this.logger = logger;
         this.targetManager = targetManager;
-        this.emoteService = emoteService;
-        this.networkService = networkService;
+
         this.glamourerAccessor = glamourerAccessor;
+
+        this.networkProvider = networkProvider;
+        this.emoteProvider = emoteProvider;
+        this.secretProvider = secretProvider;
+
+        this.sessionManagerService = sessionManagerService;
+
         this.hash = hash;
+        this.selectedFriends = selectedFriends;
     }
 
     public override void Draw()
@@ -145,13 +165,13 @@ public class ControlWindow : Window
         #region Emote
         SharedUserInterfaces.MediumText("Emote", SharedUserInterfaces.Gold);
 
-        SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, new Domain.FastFilter<string>(emoteService.GetEmotes()));
+        SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, new FastFilter<string>(emoteProvider.Emotes));
         
         ImGui.SameLine();
         
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Play))
         {
-            networkService.Commands.IssueEmoteCommand(selectedFriends, emote);
+            _ = networkProvider.IssueEmoteCommand(secretProvider.Secret, selectedFriends, emote);
         }
 
         #endregion
@@ -214,7 +234,7 @@ public class ControlWindow : Window
 
     public override void OnClose()
     {
-        networkService.EndSession(hash);
+        sessionManagerService.EndSession(hash);
     }
 
     private void ProcessChatCommand()
@@ -232,7 +252,7 @@ public class ControlWindow : Window
             extra = tellTarget;
         }
 
-        networkService.Commands.IssueSpeakCommand(selectedFriends, message, chatMode, extra);
+        _ = networkProvider.IssueSpeakCommand(secretProvider.Secret, selectedFriends, message, chatMode, extra);
     }
 
     private void ProcessGlamourerCommand()
@@ -240,6 +260,6 @@ public class ControlWindow : Window
         if (glamourerData.Length == 0) return;
 
         var glamourerApplyType = GlamourerAccessor.ConvertBoolsToApplyType(applyCustomization, applyEquipment);
-        networkService.Commands.IssueBecomeCommand(selectedFriends, glamourerData, glamourerApplyType);
+        _ = networkProvider.IssueBecomeCommand(secretProvider.Secret,selectedFriends, glamourerData, glamourerApplyType);
     }
 }

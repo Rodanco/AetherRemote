@@ -1,7 +1,7 @@
 using AetherRemoteCommon.Domain;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,15 +22,15 @@ public class GlamourerAccessor : IDisposable
     private readonly CancellationTokenSource source = new();
     private readonly TimeSpan checkGlamourerApiInterval = TimeSpan.FromSeconds(15);
 
-    public GlamourerAccessor(Plugin plugin)
+    public GlamourerAccessor(IPluginLog logger, DalamudPluginInterface pluginInterface)
     {
-        logger = plugin.Logger;
+        this.logger = logger;
 
-        glamourerApiVersions = plugin.PluginInterface.GetIpcSubscriber<(int, int)>("Glamourer.ApiVersions");
-        glamourerGetAllCustomization = plugin.PluginInterface.GetIpcSubscriber<string, string?>("Glamourer.GetAllCustomization");
-        glamourerApplyAll = plugin.PluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyAll");
-        glamourerApplyOnlyEquipment = plugin.PluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyEquipment");
-        glamourerApplyOnlyCustomization = plugin.PluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyCustomization");
+        glamourerApiVersions = pluginInterface.GetIpcSubscriber<(int, int)>("Glamourer.ApiVersions");
+        glamourerGetAllCustomization = pluginInterface.GetIpcSubscriber<string, string?>("Glamourer.GetAllCustomization");
+        glamourerApplyAll = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyAll");
+        glamourerApplyOnlyEquipment = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyEquipment");
+        glamourerApplyOnlyCustomization = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyCustomization");
 
         PeriodicCheckGlamourerApi(() => { IsGlamourerInstalled = CheckGlamourerInstalled(); }, source.Token);
     }

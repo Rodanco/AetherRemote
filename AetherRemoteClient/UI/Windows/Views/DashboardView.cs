@@ -1,3 +1,4 @@
+using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Services;
@@ -5,6 +6,7 @@ using AetherRemoteClient.UI.Windows.Popups;
 using AetherRemoteCommon;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -16,13 +18,18 @@ namespace AetherRemoteClient.UI.Windows.Views;
 public class DashboardView : IWindow
 {
     // Inject
+    private readonly IPluginLog logger;
     private readonly UiBuilder uiBuilder;
     private readonly ConfigWindow configWindow;
     private readonly Configuration configuration;
-    private readonly FriendListService friendList;
-    private readonly NetworkService networkService;
     private readonly MainWindow mainWindow;
-    private readonly IPluginLog logger;
+
+    // Provides
+    private readonly NetworkProvider networkProvider;
+
+    // Services
+    private readonly FriendListService friendListService;
+    private readonly SessionManagerService sessionManagerService;
 
     // Filter
     //private readonly FastFilter<Friend> friendsListFilter;
@@ -39,25 +46,32 @@ public class DashboardView : IWindow
             ImGuiTreeNodeFlags.SpanFullWidth |
             ImGuiTreeNodeFlags.DefaultOpen |
             ImGuiTreeNodeFlags.FramePadding;
+            
+    private CustomFilter<Friend> friendFilter;
 
-    CustomFilter<Friend> friendFilter;
-
-    public DashboardView(Plugin plugin, MainWindow mainWindow)
+    public DashboardView(
+        IPluginLog logger,
+        DalamudPluginInterface pluginInterface,
+        MainWindow mainWindow,
+        ConfigWindow configWindow,
+        Configuration configuration,
+        NetworkProvider networkProvider,
+        FriendListService friendListService,
+        SessionManagerService sessionManagerService)
     {
         // Inject
-        configWindow = plugin.ConfigWindow;
-        uiBuilder = plugin.PluginInterface.UiBuilder;
-        friendList = plugin.FriendListService;
-        networkService = plugin.NetworkService;
-        configuration = plugin.Configuration;
-        logger = plugin.Logger;
+        this.logger = logger;
+        this.uiBuilder = pluginInterface.UiBuilder;
         this.mainWindow = mainWindow;
-
-        //friendsListFilter = new FastFilter<Friend>(friendList.Friends);
+        this.configWindow = configWindow;
+        this.configuration = configuration;
+        this.networkProvider = networkProvider;
+        this.friendListService = friendListService;
+        this.sessionManagerService = sessionManagerService;
 
         // Define Popups
-        addFriendPopup = new AddFriendPopup(friendList);
-        editFriendPopup = new EditFriendPopup(friendList);
+        addFriendPopup = new AddFriendPopup(friendListService);
+        editFriendPopup = new EditFriendPopup(friendListService);
         friendOptionSelectionPopup = new FriendOptionSelectionPopup();
 
         friendFilter = new CustomFilter<Friend>(friendList.Friends, (friend, search) => friend.NoteOrId.Contains(search, System.StringComparison.OrdinalIgnoreCase));
@@ -65,7 +79,7 @@ public class DashboardView : IWindow
 
     public void Draw()
     {
-        if (!Plugin.DeveloperMode && networkService.ConnectionStatus == HubConnectionState.Disconnected)
+        if (!Plugin.DeveloperMode && networkProvider.Connection.State == HubConnectionState.Disconnected)
         {
             mainWindow.SetCurrentViewToLogin();
             return;
@@ -73,7 +87,7 @@ public class DashboardView : IWindow
 
         var padding = ImGui.GetStyle().FramePadding;
 
-        var friendCode = networkService.FriendCode ?? "Unknown";
+        var friendCode = networkProvider.FriendCode ?? "Unknown";
 
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Copy, 1.5f))
         {
@@ -136,12 +150,12 @@ public class DashboardView : IWindow
         {
             foreach (var friend in filteredOnlineList)
             {
-                var userSettingButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserCog, 1.0f);
+                var userSettingButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserCog);
                 ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.1f, 0.5f));
 
                 var selectableId = $"{friend.NoteOrId}###{friend.FriendCode}";
                 //var selectableSize = new Vector2(ImGui.GetWindowWidth() - (padding.X * 8) - userSettingButtonSize.X, userSettingButtonSize.Y);
-                var selectableSize = new Vector2(0, userSettingButtonSize.Y);
+                var selectableSize = new Vector2(0, 0);
 
                 if (ImGui.Selectable(selectableId, friend.Selected, ImGuiSelectableFlags.SpanAllColumns, selectableSize))
                 {
@@ -197,11 +211,11 @@ public class DashboardView : IWindow
 
         ImGui.EndChild();
 
-        var friendListCount = friendList.SelectedFriends.Count <= 0;
+        var friendListCount = friendListService.SelectedFriends.Count <= 0;
         if (friendListCount) ImGui.BeginDisabled();
         if (ImGui.Button("Control", new Vector2(ImGui.GetWindowWidth() - 15, 40)))
         {
-            networkService.StartSession(friendList.SelectedFriends);
+            sessionManagerService.StartSession(friendListService.SelectedFriends);
         }
         if (friendListCount) ImGui.EndDisabled();
     }

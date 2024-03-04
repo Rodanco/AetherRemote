@@ -1,27 +1,21 @@
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
-using System;
 using System.Collections.Generic;
 
-namespace AetherRemoteClient.Services;
+namespace AetherRemoteClient.Components;
 
-public class EmoteService
+public class EmoteProvider
 {
-    public List<string> GetEmotes()
-    {
-        return emotes;
-    }
-
     /// <summary>
     /// List containing all the current emote alias in the game.
     /// </summary>
-    private readonly List<string> emotes;
+    public List<string> Emotes {  get; private set; }
 
-    public EmoteService(Plugin plugin)
+    public EmoteProvider(IDataManager dataManager)
     {
-        emotes = new();
-
-        var emoteSheet = plugin.DataManager.Excel.GetSheet<Emote>();
+        Emotes = new();
+        var emoteSheet = dataManager.Excel.GetSheet<Emote>();
         if (emoteSheet == null) return;
 
         for (uint i = 0; i < emoteSheet.RowCount; i++)
@@ -31,13 +25,13 @@ public class EmoteService
 
             var command = emote?.TextCommand?.Value?.Command?.ToString();
             if (command.IsNullOrEmpty()) continue;
-            emotes.Add(command[1..]);
+            Emotes.Add(command[1..]);
 
             var shortCommand = emote?.TextCommand?.Value?.ShortCommand?.ToString();
             if (shortCommand.IsNullOrEmpty()) continue;
-            emotes.Add(shortCommand[1..]);
+            Emotes.Add(shortCommand[1..]);
         }
 
-        emotes.Sort();
+        Emotes.Sort();
     }
 }
