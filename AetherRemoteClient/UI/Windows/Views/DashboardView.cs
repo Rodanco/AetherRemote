@@ -33,7 +33,7 @@ public class DashboardView : IWindow
     private readonly SessionManagerService sessionManagerService;
 
     // Filter
-    private readonly FastFilter<Friend> friendsListFilter;
+    //private readonly FastFilter<Friend> friendsListFilter;
 
     // Variable used to search friends list
     private string searchByFriendIdOrNoteInput = string.Empty;
@@ -47,6 +47,8 @@ public class DashboardView : IWindow
             ImGuiTreeNodeFlags.SpanFullWidth |
             ImGuiTreeNodeFlags.DefaultOpen |
             ImGuiTreeNodeFlags.FramePadding;
+            
+    private CustomFilter<Friend> friendFilter;
 
     public DashboardView(
         IPluginLog logger,
@@ -70,13 +72,12 @@ public class DashboardView : IWindow
         this.friendListService = friendListService;
         this.sessionManagerService = sessionManagerService;
 
-        // Data
-        friendsListFilter = new FastFilter<Friend>(friendListService.FriendList);
-
         // Define Popups
         addFriendPopup = new AddFriendPopup(friendListService);
         editFriendPopup = new EditFriendPopup(friendListService);
         friendOptionSelectionPopup = new FriendOptionSelectionPopup();
+
+        friendFilter = new CustomFilter<Friend>(friendList.Friends, (friend, search) => friend.NoteOrId.Contains(search, System.StringComparison.OrdinalIgnoreCase));
     }
 
     public void Draw()
@@ -123,8 +124,10 @@ public class DashboardView : IWindow
         var addFriendButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserPlus);
         ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (padding.X * 6));
 
-        ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchByFriendIdOrNoteInput,
-            AetherRemoteConstants.FriendCodeCharLimit);
+        if (ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchByFriendIdOrNoteInput,
+            AetherRemoteConstants.FriendCodeCharLimit))
+            friendFilter.Restart(searchByFriendIdOrNoteInput);
+        
 
         ImGui.SameLine();
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserPlus, addFriendButtonSize))
@@ -134,10 +137,15 @@ public class DashboardView : IWindow
 
         friendOptionSelectionPopup.Draw();
 
-        var filteredList = friendsListFilter.Filter(searchByFriendIdOrNoteInput);
+        //var filteredList = friendsListFilter.Filter(searchByFriendIdOrNoteInput);
+        IList<Friend> listToUse = friendFilter.List;
+        //if (useFilterList)
+        //    listToUse = filteredFriends;
+        //else
+        //    listToUse = friendList.Friends;
         var filteredOnlineList = new List<Friend>();
         var filteredOfflineList = new List<Friend>();
-        foreach (var friend in filteredList)
+        foreach (var friend in listToUse)
         {
             if (friend.Online)
                 filteredOnlineList.Add(friend);
@@ -180,18 +188,18 @@ public class DashboardView : IWindow
                 {
                     editFriendPopup.Open(friend);
                 }
-                
+
             }
 
             editFriendPopup.Draw();
 
             ImGui.TreePop();
         }
-        
+
 
         if (ImGui.TreeNodeEx("Offline", TreeNodeFlags))
         {
-            foreach(var friend in filteredOfflineList)
+            foreach (var friend in filteredOfflineList)
             {
                 ImGui.SetCursorPosX(15);
                 SharedUserInterfaces.Icon(FontAwesomeIcon.User, SharedUserInterfaces.Red);
