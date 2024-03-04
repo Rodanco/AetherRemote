@@ -1,11 +1,9 @@
 using AetherRemoteClient.Domain;
 using Dalamud.Interface;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.Style;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
-using System.Net.Sockets;
 using System.Numerics;
 using System.Threading.Tasks;
 

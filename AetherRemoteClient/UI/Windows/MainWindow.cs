@@ -2,6 +2,7 @@ using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI.Windows.Views;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -27,6 +28,7 @@ public class MainWindow : Window
         IPluginLog logger,
         DalamudPluginInterface pluginInterface,
         ConfigWindow configWindow,
+        LogWindow logWindow,
         Configuration configuration,
         NetworkProvider networkProvider,
         SecretProvider secretProvider,
@@ -40,8 +42,27 @@ public class MainWindow : Window
             MaximumSize = new Vector2(275, 425)
         };
 
+        TitleBarButtons = new()
+        {
+            new TitleBarButton()
+            {
+                Icon = FontAwesomeIcon.Cog,
+                Click = (_) =>
+                {
+                    configWindow.IsOpen = !configWindow.IsOpen;
+                },
+                IconOffset = new Vector2(2, 1),
+                ShowTooltip = () =>
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.TextUnformatted("Open Settings");
+                    ImGui.EndTooltip();
+                }
+            }
+        };
+
         // Views
-        dashboardView = new DashboardView(logger, pluginInterface, this, configWindow, configuration, networkProvider, friendListService, sessionManagerService);
+        dashboardView = new DashboardView(logger, pluginInterface, this, configWindow, logWindow, configuration, networkProvider, friendListService, sessionManagerService);
         loginView = new LoginView(logger, this, configuration, networkProvider, secretProvider, friendListService);
         
         currentView = loginView;

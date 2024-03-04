@@ -23,6 +23,7 @@ public class DashboardView : IWindow
     private readonly ConfigWindow configWindow;
     private readonly Configuration configuration;
     private readonly MainWindow mainWindow;
+    private readonly LogWindow logWindow;
 
     // Provides
     private readonly NetworkProvider networkProvider;
@@ -52,6 +53,7 @@ public class DashboardView : IWindow
         DalamudPluginInterface pluginInterface,
         MainWindow mainWindow,
         ConfigWindow configWindow,
+        LogWindow logWindow,
         Configuration configuration,
         NetworkProvider networkProvider,
         FriendListService friendListService,
@@ -62,6 +64,7 @@ public class DashboardView : IWindow
         this.uiBuilder = pluginInterface.UiBuilder;
         this.mainWindow = mainWindow;
         this.configWindow = configWindow;
+        this.logWindow = logWindow;
         this.configuration = configuration;
         this.networkProvider = networkProvider;
         this.friendListService = friendListService;
@@ -97,14 +100,21 @@ public class DashboardView : IWindow
         ImGui.SameLine();
 
         // 35 is the size of the buttons, 8 is the default padding. Yay magic numbers!
-        var workingSpace = ImGui.GetWindowWidth() - ((2 * 35) - (4 * 8));
+        var workingSpace = ImGui.GetWindowWidth() - ((2 * 35) - (4 * padding.X));
         SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, SharedUserInterfaces.Gold);
 
         var configWindowButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.Wrench, 1.5f);
         ImGui.SameLine(ImGui.GetWindowWidth() - configWindowButtonSize.X - 8);
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Wrench, 1.5f))
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.MagnifyingGlassArrowRight, 1.5f))
         {
-            configWindow.IsOpen = true;
+            logWindow.IsOpen = !logWindow.IsOpen;
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted("Open log window");
+            ImGui.EndTooltip();
         }
 
         ImGui.Separator();

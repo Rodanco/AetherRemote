@@ -24,23 +24,35 @@ public sealed class Plugin : IDalamudPlugin
     public static readonly bool DeveloperMode = true;
     
     // Injected
-    public DalamudPluginInterface PluginInterface { get; init; }
-    public ICommandManager CommandManager { get; init; }
+    private DalamudPluginInterface pluginInterface { get; init; }
+    private ICommandManager commandManager { get; init; }
 
     // Instantiated
-    public Configuration Configuration { get; init; }
-    public SharedUserInterfaces SharedUserInterfaces { get; init; }
+    private Configuration configuration { get; init; }
+    private SharedUserInterfaces sharedUserInterfaces { get; init; }
+    private Chat chat { get; init; }
 
     // Accessors
-    public GlamourerAccessor GlamourerAccessor { get; init; }
+    private GlamourerAccessor glamourerAccessor { get; init; }
 
     // Providers
-    public ActionQueueProvider ActionQueueProvider { get; init; }
+    private ActionQueueProvider actionQueueProvider { get; init; }
+    private EmoteProvider emoteProvider { get; init; }
+    private FriendListProvider friendListProvider { get; init; }
+    private NetworkProvider networkProvider { get; init; }
+    private SecretProvider secretProvider { get; init; }
+
+    // Services
+    private FriendListService friendListService { get; init; }
+    private NetworkService networkService { get; init; }
+    private SessionManagerService sessionManagerService { get; init; }
+    private LogService logService { get; init; }
 
     // Windows
-    public WindowSystem WindowSystem  { get; init; }
-    public MainWindow MainWindow { get; init; }
-    public ConfigWindow ConfigWindow { get; init; }
+    private WindowSystem windowSystem  { get; init; }
+    private MainWindow mainWindow { get; init; }
+    private LogWindow logWindow { get; init; }
+    private ConfigWindow configWindow { get; init; }
 
     public Plugin(
         DalamudPluginInterface pluginInterface,
@@ -52,79 +64,83 @@ public sealed class Plugin : IDalamudPlugin
         IPluginLog logger,
         IChatGui chatGUI)
     {
-        CommandManager = commandManager;
-        PluginInterface = pluginInterface;
+        this.commandManager = commandManager;
+        this.pluginInterface = pluginInterface;
 
-        WindowSystem = new WindowSystem("AetherRemote");
+        windowSystem = new WindowSystem("AetherRemote");
 
-        Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        Configuration.Initialize(pluginInterface);
+        configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        configuration.Initialize(pluginInterface);
 
         // Used in UI events
-        SharedUserInterfaces = new SharedUserInterfaces(logger, pluginInterface);
+        sharedUserInterfaces = new SharedUserInterfaces(logger, pluginInterface);
 
         // Used to send messages to the server
-        var Chat = new XivCommonBase(pluginInterface).Functions.Chat;
+        chat = new XivCommonBase(pluginInterface).Functions.Chat;
 
         // Accessors
-        GlamourerAccessor = new GlamourerAccessor(logger, pluginInterface);
+        glamourerAccessor = new GlamourerAccessor(logger, pluginInterface);
 
         // Providers
-        var EmoteProvider = new EmoteProvider(dataManager);
-        var FriendListProvider = new FriendListProvider(pluginInterface);
-        var SecretProvider = new SecretProvider(pluginInterface);
-        var NetworkProvider = new NetworkProvider(logger);
-        ActionQueueProvider = new ActionQueueProvider(logger, clientState, Chat, GlamourerAccessor);
+        actionQueueProvider = new ActionQueueProvider(logger, clientState, chat, glamourerAccessor);
+        emoteProvider = new EmoteProvider(dataManager);
+        friendListProvider = new FriendListProvider(pluginInterface);
+        networkProvider = new NetworkProvider(logger);
+        secretProvider = new SecretProvider(pluginInterface);
 
         // Services
-        var NetworkService = new NetworkService(logger, pluginInterface, NetworkProvider, ActionQueueProvider, EmoteProvider);
-        var FriendListService = new FriendListService(logger, NetworkProvider, FriendListProvider, SecretProvider);
-        var SessionManagerService = new SessionManagerService(logger, targetManager, WindowSystem, 
-            GlamourerAccessor, NetworkProvider, EmoteProvider, SecretProvider);
-        
-        // Windows
-        ConfigWindow = new ConfigWindow();
-        MainWindow = new MainWindow(logger, pluginInterface, ConfigWindow, Configuration, NetworkProvider, SecretProvider, FriendListService, SessionManagerService);
-        WindowSystem.AddWindow(ConfigWindow);
-        WindowSystem.AddWindow(MainWindow);
+        friendListService = new FriendListService(logger, networkProvider, friendListProvider, secretProvider);
+        networkService = new NetworkService(logger, pluginInterface, networkProvider, actionQueueProvider, emoteProvider);
+        sessionManagerService = new SessionManagerService(logger, targetManager, windowSystem, 
+            glamourerAccessor, networkProvider, emoteProvider, secretProvider);
+        logService = new LogService();
 
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        // Windows
+        logWindow = new LogWindow(logService);
+        configWindow = new ConfigWindow();
+        mainWindow = new MainWindow(logger, pluginInterface, configWindow, logWindow, configuration, networkProvider, secretProvider, friendListService, sessionManagerService);
+
+        windowSystem.AddWindow(logWindow);
+        windowSystem.AddWindow(configWindow);
+        windowSystem.AddWindow(mainWindow);
+
+        commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Opens the Aether Remote login / dashboard"
+            HelpMessage = "Opens the Aether Remote dashboard"
         });
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
-        PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+        pluginInterface.UiBuilder.Draw += DrawUI;
+        pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-        MainWindow.IsOpen = true;
+        mainWindow.IsOpen = true;
     }
 
     public void Dispose()
     {
-        GlamourerAccessor.Dispose();
+        glamourerAccessor.Dispose();
 
-        WindowSystem.RemoveAllWindows();
-        CommandManager.RemoveHandler(CommandName);
+        windowSystem.RemoveAllWindows();
+        commandManager.RemoveHandler(CommandName);
 
-        PluginInterface.UiBuilder.Draw -= DrawUI;
-        PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
+        pluginInterface.UiBuilder.Draw -= DrawUI;
+        pluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
     }
 
     private void OnCommand(string command, string args)
     {
-        MainWindow.IsOpen = true;
+        mainWindow.IsOpen = true;
     }
 
     private void DrawUI()
     {
         // Convenient way to do this
-        ActionQueueProvider.Update();
+        actionQueueProvider.Update();
 
-        WindowSystem.Draw();
+        windowSystem.Draw();
     }
 
     public void DrawConfigUI()
     {
-        ConfigWindow.IsOpen = true;
+        configWindow.IsOpen = true;
     }
 }

@@ -1,4 +1,5 @@
 using AetherRemoteClient.Accessors.Glamourer;
+using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteCommon.Domain;
 using Dalamud.Plugin.Services;
 using System;
@@ -31,27 +32,19 @@ public class ActionQueueProvider
         chatActionQueue.Update();
     }
 
-    /// <summary>
-    /// Enqueues a glamourer become command.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="data"></param>
-    /// <param name="applyType"></param>
-    public void EnqueueGlamourerAction(string sender, string data, GlamourerApplyType applyType)
+    public void EnqueueBecomeAction(string sender, string data, GlamourerApplyType applyType)
     {
-        var glamourerAction = new GlamourerAction(sender, data, applyType);
-        glamourerActionQueue.EnqueueAction(glamourerAction);
+
     }
 
-    /// <summary>
-    /// Enqueues a chat speak or emote command.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="command"></param>
-    public void EnqueueChatAction(string sender, string command)
+    public void EnqueueEmoteAction(string sender, string emote)
     {
-        var chatAction = new ChatAction(sender, command);
-        chatActionQueue.EnqueueAction(chatAction);
+
+    }
+
+    public void EnqueueSpeakAction(string sender, string message, ChatMode channel, string? extra)
+    {
+
     }
 
     private class GlamourerActionQueue : ActionQueue<GlamourerAction>
@@ -104,6 +97,33 @@ public class ActionQueueProvider
                 return;
 
             chat.SendMessage(action.Command);
+        }
+    }
+
+    private class ChatAction2Queue : ActionQueue<IChatAction>
+    {
+        private readonly IPluginLog logger;
+        private readonly IClientState clientState;
+        private readonly Chat chat;
+
+        public ChatAction2Queue(IPluginLog logger, IClientState clientState, Chat chat) : base(logger, clientState)
+        {
+            this.logger = logger;
+            this.clientState = clientState;
+            this.chat = chat;
+        }
+
+        protected override void Process(IChatAction action)
+        {
+            // TODO: Explore possibility of DLQ
+            if (clientState.LocalPlayer == null)
+                return;
+
+            var command = action.Build();
+
+            chat.SendMessage(command);
+
+            action.Log();
         }
     }
 
@@ -178,52 +198,5 @@ public class ActionQueueProvider
         }
 
         protected abstract void Process(T action);
-    }
-
-    private class ChatAction : QueueAction
-    {
-        public string Command;
-
-        public ChatAction(string sender, string command) : base(sender)
-        {
-            Command = command;
-        }
-
-        public override string ToString()
-        {
-            return $"ChatAction[Sender={Sender}, Command={Command}]";
-        }
-    }
-
-    private class GlamourerAction : QueueAction
-    {
-        public string Data;
-        public GlamourerApplyType ApplyType;
-
-        public GlamourerAction(string sender, string data, GlamourerApplyType applyType) : base(sender)
-        {
-            Data = data;
-            ApplyType = applyType;
-        }
-
-        public override string ToString()
-        {
-            return $"GlamourerAction[Sender={Sender}, Data={Data}, GlamourerApplyType={ApplyType}]";
-        }
-    }
-
-    private class QueueAction
-    {
-        public string Sender;
-
-        public QueueAction(string sender)
-        {
-            Sender = sender;
-        }
-
-        public override string ToString()
-        {
-            return $"QueueAction[Sender={Sender}]";
-        }
     }
 }
