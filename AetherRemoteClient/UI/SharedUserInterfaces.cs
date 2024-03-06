@@ -278,18 +278,19 @@ public class SharedUserInterfaces
     public static void ComboFilter(
         string id,
         ref string selectedString,
-        FastFilter<string> filterHelper,
+        ThreadedFilter<string> filterHelper,
         ImGuiWindowFlags? imGuiWindowFlags = null)
     {
-        var options = filterHelper.Filter(selectedString);
-
         var _sizeX = 170;
-        var _sizeY = options.Count < 10 ? (options.Count * 25) + 10 : 260;
+        var _sizeY = filterHelper.List.Count < 10 ? (filterHelper.List.Count * 25) + 10 : 260;
         // TODO: Fix sizing bug when searching through options.
         // For example, when scanning through emotes, if you search "ma" you can see it clearly
 
         ImGui.SetNextItemWidth(_sizeX);
-        var isInputTextEnterPressed = ImGui.InputText($"##{id}-ComboFilter", ref selectedString, 32, ImGuiInputTextFlags.EnterReturnsTrue);
+        if (ImGui.InputText($"##{id}-ComboFilter", ref selectedString, 32))
+        {
+            filterHelper.Restart(selectedString);
+        }
         var isInputTextActive = ImGui.IsItemActive();
         var isInputTextActivated = ImGui.IsItemActivated();
 
@@ -308,16 +309,16 @@ public class SharedUserInterfaces
 
         if (ImGui.BeginPopup(popupName, imGuiWindowFlags ?? (PopupWindowFlags | ImGuiWindowFlags.ChildWindow)))
         {
-            for (var i = 0; i < options.Count; i++)
+            for (var i = 0; i < filterHelper.List.Count; i++)
             {
-                var option = options[i];
+                var option = filterHelper.List[i];
                 if (ImGui.Selectable(option))
                 {
                     selectedString = option;
                 }
             }
 
-            if (isInputTextEnterPressed || (!isInputTextActive && !ImGui.IsWindowFocused()))
+            if (!isInputTextActive && !ImGui.IsWindowFocused())
             {
                 ImGui.CloseCurrentPopup();
             }

@@ -3,14 +3,14 @@ using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
 using System.Collections.Generic;
 
-namespace AetherRemoteClient.Components;
+namespace AetherRemoteClient.Providers;
 
 public class EmoteProvider
 {
     /// <summary>
     /// List containing all the current emote alias in the game.
     /// </summary>
-    public List<string> Emotes {  get; private set; }
+    public List<string> Emotes { get; private set; }
 
     public EmoteProvider(IDataManager dataManager)
     {

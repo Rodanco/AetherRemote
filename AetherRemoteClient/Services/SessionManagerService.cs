@@ -1,6 +1,6 @@
 using AetherRemoteClient.Accessors.Glamourer;
-using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
+using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Windows;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;

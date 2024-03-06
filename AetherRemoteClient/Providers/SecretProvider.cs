@@ -2,28 +2,28 @@ using AetherRemoteClient.Domain;
 using Dalamud.Plugin;
 using System;
 
-namespace AetherRemoteClient.Components;
+namespace AetherRemoteClient.Providers;
 
 public class SecretProvider
 {
     private const string FileName = "secret.json";
-    private readonly SaveSystem<SecretSave> saveSystem;
+    private readonly SaveFile<SecretSave> saveSystem;
 
     public string Secret
-    { 
-        get 
+    {
+        get
         {
             return saveSystem.Get.Secret;
-        } 
-        set 
-        { 
+        }
+        set
+        {
             saveSystem.Get.Secret = value;
-        } 
+        }
     }
 
     public SecretProvider(DalamudPluginInterface pluginInterface)
     {
-        saveSystem = new SaveSystem<SecretSave>(pluginInterface.ConfigDirectory.FullName, FileName);
+        saveSystem = new SaveFile<SecretSave>(pluginInterface.ConfigDirectory.FullName, FileName);
     }
 
     public void Save()

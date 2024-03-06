@@ -1,5 +1,5 @@
 using AetherRemoteClient.Accessors.Glamourer;
-using AetherRemoteClient.Components;
+using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
 using AetherRemoteClient.UI.Windows;
@@ -21,7 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = true;
+    public static readonly bool DeveloperMode = false;
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }
@@ -46,7 +46,6 @@ public sealed class Plugin : IDalamudPlugin
     private FriendListService friendListService { get; init; }
     private NetworkService networkService { get; init; }
     private SessionManagerService sessionManagerService { get; init; }
-    private LogService logService { get; init; }
 
     // Windows
     private WindowSystem windowSystem  { get; init; }
@@ -90,13 +89,12 @@ public sealed class Plugin : IDalamudPlugin
 
         // Services
         friendListService = new FriendListService(logger, networkProvider, friendListProvider, secretProvider);
-        networkService = new NetworkService(logger, pluginInterface, networkProvider, actionQueueProvider, emoteProvider);
+        networkService = new NetworkService(logger, pluginInterface, networkProvider, actionQueueProvider, emoteProvider, friendListProvider);
         sessionManagerService = new SessionManagerService(logger, targetManager, windowSystem, 
             glamourerAccessor, networkProvider, emoteProvider, secretProvider);
-        logService = new LogService();
 
         // Windows
-        logWindow = new LogWindow(logService);
+        logWindow = new LogWindow();
         configWindow = new ConfigWindow();
         mainWindow = new MainWindow(logger, pluginInterface, configWindow, logWindow, configuration, networkProvider, secretProvider, friendListService, sessionManagerService);
 

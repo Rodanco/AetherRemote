@@ -1,6 +1,6 @@
 using AetherRemoteClient.Accessors.Glamourer;
-using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
+using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain;
@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace AetherRemoteClient.UI.Windows;
 
@@ -35,6 +36,7 @@ public class ControlWindow : Window
 
     // Data
     private readonly List<Friend> selectedFriends;
+    private readonly ThreadedFilter<string> emoteFilter;
     private readonly int hash;
     
     private ChatMode chatMode = ChatMode.Say;
@@ -82,6 +84,8 @@ public class ControlWindow : Window
 
         this.hash = hash;
         this.selectedFriends = selectedFriends;
+
+        emoteFilter = new ThreadedFilter<string>(emoteProvider.Emotes, FilterEmote);
     }
 
     public override void Draw()
@@ -147,7 +151,7 @@ public class ControlWindow : Window
         ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - 100);
         if (ImGui.InputTextWithHint("###MessageInputBox", "Message", ref message, 400, ImGuiInputTextFlags.EnterReturnsTrue))
         {
-            ProcessChatCommand();
+            ProcessSpeakCommand();
         };
 
         ImGui.SameLine();
@@ -155,7 +159,7 @@ public class ControlWindow : Window
         ImGui.SetNextItemWidth(50);
         if(ImGui.Button("Send"))
         {
-            ProcessChatCommand();
+            ProcessSpeakCommand();
         }
         #endregion
 
@@ -165,13 +169,13 @@ public class ControlWindow : Window
         #region Emote
         SharedUserInterfaces.MediumText("Emote", SharedUserInterfaces.Gold);
 
-        SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, new FastFilter<string>(emoteProvider.Emotes));
-        
+        SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, emoteFilter);
+            
         ImGui.SameLine();
         
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Play))
         {
-            _ = networkProvider.IssueEmoteCommand(secretProvider.Secret, selectedFriends, emote);
+            ProcessEmoteCommand();
         }
 
         #endregion
@@ -237,9 +241,30 @@ public class ControlWindow : Window
         sessionManagerService.EndSession(hash);
     }
 
-    private void ProcessChatCommand()
+    private async void ProcessEmoteCommand()
     {
-        if (message.Length == 0) return;
+        var validEmote = emoteProvider.Emotes.Contains(emote);
+        if (validEmote == false)
+            return;
+
+        var result = await networkProvider.IssueEmoteCommand(secretProvider.Secret, selectedFriends, emote);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+            sb.Append("You made ");
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            sb.Append(" do the ");
+            sb.Append(emote);
+            sb.Append(" emote.");
+
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+        }
+    }
+
+    private async void ProcessSpeakCommand()
+    {
+        if (message.Length <= 0)
+            return;
 
         string? extra = null;
         if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
@@ -248,18 +273,78 @@ public class ControlWindow : Window
         }
         else if (chatMode == ChatMode.Tell)
         {
-            if (tellTarget.Length == 0) return;
-            extra = tellTarget;
+            if (tellTarget.Length > 0)
+                extra = tellTarget;
         }
 
-        _ = networkProvider.IssueSpeakCommand(secretProvider.Secret, selectedFriends, message, chatMode, extra);
+        var result = await networkProvider.IssueSpeakCommand(secretProvider.Secret, selectedFriends, message, chatMode, extra);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("You made ");
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            if (chatMode == ChatMode.Tell)
+            {
+                sb.Append("send a tell to ");
+                sb.Append(extra);
+                sb.Append(" saying: \"");
+                sb.Append(message);
+                sb.Append("\".");
+            }
+            else
+            {
+                sb.Append("say: \"");
+                sb.Append(message);
+                sb.Append("\" in ");
+                sb.Append(chatMode.ToCondensedString());
+                if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
+                {
+                    sb.Append(extra);
+                }
+                sb.Append('.');
+            }
+
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+        }
     }
 
-    private void ProcessGlamourerCommand()
+    private async void ProcessGlamourerCommand()
     {
-        if (glamourerData.Length == 0) return;
+        if (glamourerData.Length == 0)
+            return;
 
         var glamourerApplyType = GlamourerAccessor.ConvertBoolsToApplyType(applyCustomization, applyEquipment);
-        _ = networkProvider.IssueBecomeCommand(secretProvider.Secret,selectedFriends, glamourerData, glamourerApplyType);
+        var result = await networkProvider.IssueBecomeCommand(secretProvider.Secret, selectedFriends, glamourerData, glamourerApplyType);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+            sb.Append("You made ");
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            switch (glamourerApplyType)
+            {
+                case GlamourerApplyType.EquipmentOnly:
+                    sb.Append(" wear this outfit: [");
+                    break;
+
+                case GlamourerApplyType.CustomizationOnly:
+                    sb.Append(" transform into this person: [");
+                    break;
+
+                case GlamourerApplyType.CustomizationAndEquipment:
+                    sb.Append(" transform into a perfect copy of this person: [");
+                    break;
+            }
+
+            sb.Append(glamourerData);
+            sb.Append("].");
+
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+        }
+    }
+
+    private static bool FilterEmote(string emote, string searchTerm)
+    {
+        return emote.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -1,5 +1,5 @@
-using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain.Interfaces;
+using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
 using Dalamud.Plugin.Services;

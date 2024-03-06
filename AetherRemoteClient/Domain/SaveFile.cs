@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Domain;
 
-public class SaveSystem<T>
+public class SaveFile<T>
 {
     private string filePath { get; init; }
 
     public T Get => save;
     private readonly T save;
 
-    public SaveSystem(string fileDirectory, string fileName)
+    public SaveFile(string fileDirectory, string fileName)
     {
         filePath = Path.Combine(fileDirectory, fileName);
         save = Load();

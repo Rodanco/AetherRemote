@@ -1,6 +1,6 @@
-using AetherRemoteClient.Components;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Domain.Interfaces;
+using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI.Windows.Popups;
 using AetherRemoteCommon;
@@ -10,6 +10,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using Microsoft.AspNetCore.SignalR.Client;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -33,10 +34,10 @@ public class DashboardView : IWindow
     private readonly SessionManagerService sessionManagerService;
 
     // Filter
-    //private readonly FastFilter<Friend> friendsListFilter;
+    private readonly ThreadedFilter<Friend> friendListFilter;
 
     // Variable used to search friends list
-    private string searchByFriendIdOrNoteInput = string.Empty;
+    private string searchFriendInput = string.Empty;
 
     // Popup Windows
     private readonly AddFriendPopup addFriendPopup;
@@ -47,8 +48,6 @@ public class DashboardView : IWindow
             ImGuiTreeNodeFlags.SpanFullWidth |
             ImGuiTreeNodeFlags.DefaultOpen |
             ImGuiTreeNodeFlags.FramePadding;
-            
-    private CustomFilter<Friend> friendFilter;
 
     public DashboardView(
         IPluginLog logger,
@@ -77,7 +76,7 @@ public class DashboardView : IWindow
         editFriendPopup = new EditFriendPopup(friendListService);
         friendOptionSelectionPopup = new FriendOptionSelectionPopup();
 
-        friendFilter = new CustomFilter<Friend>(friendList.Friends, (friend, search) => friend.NoteOrId.Contains(search, System.StringComparison.OrdinalIgnoreCase));
+        friendListFilter = new ThreadedFilter<Friend>(friendListService.FriendList, FilterFriend);
     }
 
     public void Draw()
@@ -124,28 +123,20 @@ public class DashboardView : IWindow
         var addFriendButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserPlus);
         ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (padding.X * 6));
 
-        if (ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchByFriendIdOrNoteInput,
-            AetherRemoteConstants.FriendCodeCharLimit))
-            friendFilter.Restart(searchByFriendIdOrNoteInput);
-        
+        if (ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchFriendInput, AetherRemoteConstants.FriendCodeCharLimit))
+            friendListFilter.Restart(searchFriendInput);
 
         ImGui.SameLine();
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserPlus, addFriendButtonSize))
         {
-            ImGui.OpenPopup(friendOptionSelectionPopup.Name);
+            ImGui.OpenPopup(addFriendPopup.Name);
         }
 
-        friendOptionSelectionPopup.Draw();
+        addFriendPopup.Draw();
 
-        //var filteredList = friendsListFilter.Filter(searchByFriendIdOrNoteInput);
-        IList<Friend> listToUse = friendFilter.List;
-        //if (useFilterList)
-        //    listToUse = filteredFriends;
-        //else
-        //    listToUse = friendList.Friends;
         var filteredOnlineList = new List<Friend>();
         var filteredOfflineList = new List<Friend>();
-        foreach (var friend in listToUse)
+        foreach (var friend in friendListFilter.List)
         {
             if (friend.Online)
                 filteredOnlineList.Add(friend);
@@ -228,5 +219,10 @@ public class DashboardView : IWindow
             sessionManagerService.StartSession(friendListService.SelectedFriends);
         }
         if (friendListCount) ImGui.EndDisabled();
+    }
+
+    private static bool FilterFriend(Friend friend, string searchTerm)
+    {
+        return friend.NoteOrId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
     }
 }
