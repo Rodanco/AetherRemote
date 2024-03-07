@@ -89,11 +89,11 @@ public class DashboardView : IWindow
             return;
         }
 
-        var padding = ImGui.GetStyle().FramePadding;
-
+        var windowPadding = ImGui.GetStyle().WindowPadding;
         var friendCode = networkProvider.FriendCode ?? "Unknown";
 
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Copy, 1.5f))
+        var copyClipboardButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.Copy, 1.5f);
+        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Copy, copyClipboardButtonSize))
         {
             ImGui.SetClipboardText(friendCode);
             uiBuilder.AddNotification("Successfully copied id to clipboard", "Aether Remote", NotificationType.Success);
@@ -102,10 +102,10 @@ public class DashboardView : IWindow
         ImGui.SameLine();
 
         // 35 is the size of the buttons, 8 is the default padding. Yay magic numbers!
-        var workingSpace = ImGui.GetWindowWidth() - ((2 * 35) - (4 * padding.X));
-        SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, SharedUserInterfaces.Gold);
+        var workingSpace = ImGui.GetWindowWidth() - (2 * copyClipboardButtonSize.X) - (4 * windowPadding.X);
+        SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, logger, SharedUserInterfaces.Gold);
 
-        var configWindowButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.Wrench, 1.5f);
+        var configWindowButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.MagnifyingGlassArrowRight, 1.5f);
         ImGui.SameLine(ImGui.GetWindowWidth() - configWindowButtonSize.X - 8);
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.MagnifyingGlassArrowRight, 1.5f))
         {
@@ -123,7 +123,7 @@ public class DashboardView : IWindow
         ImGui.Spacing();
 
         var addFriendButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserPlus);
-        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (padding.X * 6));
+        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (windowPadding.X * 6));
 
         if (ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchFriendInput, AetherRemoteConstants.FriendCodeCharLimit))
             friendListFilter.Restart(searchFriendInput);

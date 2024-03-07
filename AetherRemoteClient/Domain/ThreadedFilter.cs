@@ -7,7 +7,7 @@ namespace AetherRemoteClient.Domain;
 
 public sealed class ThreadedFilter<T>
 {
-    private const int DelayStartFilter = 500;
+    private const int DelayStartFilter = 192;
     private readonly IList<T> originalList;
     private readonly List<T> filteredList;
     private string searchTerm = "";

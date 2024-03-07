@@ -68,23 +68,6 @@ public class LoginView : IWindow
             pendingLogin = true;
         }
 
-        ImGui.Spacing();
-
-        if (ImGui.Checkbox("###ShouldAutoLoginCheckbox", ref shouldAutoLoginCheckboxValue))
-        {
-            configuration.AutoConnect = shouldAutoLoginCheckboxValue;
-            configuration.Save();
-        }
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.Text("Should the plugin automatically attempt to log you in?");
-            ImGui.EndTooltip();
-        }
-        ImGui.SameLine();
-        ImGui.TextUnformatted("Auto Login");
-
         ImGui.SetCursorPosY(200);
 
         var secretLength = secretInputBoxValue.Length;

@@ -1,6 +1,7 @@
 using AetherRemoteClient.Domain;
 using Dalamud.Interface;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
@@ -201,6 +202,7 @@ public class SharedUserInterfaces
         {
             MediumFont?.Push();
             var mediumTextWidth = ImGui.CalcTextSize(text).X;
+            PluginLog.Information($"M: {mediumTextWidth}");
             MediumFont?.Pop();
 
             if (mediumTextWidth <= workingSpace)
@@ -209,6 +211,42 @@ public class SharedUserInterfaces
                 return;
             }
         }
+
+        TextCentered(text, 0, color);
+    }
+
+    public static void DynamicTextCentered(string text, float workingSpace, IPluginLog logger, Vector4? color = null)
+    {
+        logger.Info("Beep");
+        if (BigFontBuilt)
+        {
+            BigFont?.Push();
+            var bigTextWidth = ImGui.CalcTextSize(text).X;
+            BigFont?.Pop();
+
+            if (bigTextWidth <= workingSpace)
+            {
+                logger.Info(bigTextWidth.ToString());
+                BigTextCentered(text, BigFontDefaultOffset, color);
+                return;
+            }
+        }
+
+        if (MediumFontBuilt)
+        {
+            MediumFont?.Push();
+            var mediumTextWidth = ImGui.CalcTextSize(text).X;
+            logger.Information($"M: {mediumTextWidth}");
+            MediumFont?.Pop();
+
+            if (mediumTextWidth <= workingSpace)
+            {
+                MediumTextCentered(text, MediumFontDefaultOffset, color);
+                return;
+            }
+        }
+
+        
 
         TextCentered(text, 0, color);
     }
