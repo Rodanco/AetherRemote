@@ -73,7 +73,7 @@ public class NetworkService
             return;
         }
 
-        actionQueueProvider.EnqueueEmoteAction(senderFriend.NoteOrId, emoteCommand.Emote);
+        actionQueueProvider.EnqueueEmoteAction(senderFriend.NoteOrFriendCode, emoteCommand.Emote);
     }
 
     public void HandleSpeakCommand(SpeakCommandExecute speakCommand)
@@ -90,6 +90,6 @@ public class NetworkService
         var sanitizedMessage = sanitizer.Sanitize(speakCommand.Message);
         var sanitizedExtra = speakCommand.Extra == null ? null : sanitizer.Sanitize(speakCommand.Extra);
 
-        actionQueueProvider.EnqueueSpeakAction(senderFriend.NoteOrId, sanitizedMessage, speakCommand.Channel, sanitizedExtra);
+        actionQueueProvider.EnqueueSpeakAction(senderFriend.NoteOrFriendCode, sanitizedMessage, speakCommand.Channel, sanitizedExtra);
     }
 }

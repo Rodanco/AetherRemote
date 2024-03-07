@@ -6,7 +6,6 @@ using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System.Numerics;
 using System.Threading.Tasks;
-using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 namespace AetherRemoteClient.UI;
 

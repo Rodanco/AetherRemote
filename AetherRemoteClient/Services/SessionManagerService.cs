@@ -56,7 +56,7 @@ public class SessionManagerService
             return;
         }
 
-        sb.Append(selectedFriends.OrderBy(friend => friend.NoteOrId).First().NoteOrId);
+        sb.Append(selectedFriends.OrderBy(friend => friend.NoteOrFriendCode).First().NoteOrFriendCode);
         if (selectedFriends.Count > 1)
         {
             sb.Append(" and ");

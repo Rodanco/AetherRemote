@@ -24,7 +24,7 @@ public class Friend
     /// <summary>
     /// Returns a friend's given note, or their id
     /// </summary>
-    public string NoteOrId => Note ?? FriendCode;
+    public string NoteOrFriendCode => Note ?? FriendCode;
 
     /// <summary>
     /// Is this friend currently connected to the server

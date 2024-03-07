@@ -206,14 +206,14 @@ public class DashboardView : IWindow
         SharedUserInterfaces.Icon(FontAwesomeIcon.User, offline ? SharedUserInterfaces.Red : SharedUserInterfaces.Green);
         
         ImGui.SameLine(0, 8);
-        ImGui.Text(friend.NoteOrId);
+        ImGui.Text(friend.NoteOrFriendCode);
 
         ImGui.SameLine();
         ImGui.SetCursorPos(new Vector2(selectableWidth - SelectableSize, beginCursorY));
 
         var padding = SelectableSize * 0.2f;
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (padding / 2));
-        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.UserCog, new Vector2(SelectableSize - padding, SelectableSize - padding), $"{friend.NoteOrId}-Settings"))
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.UserCog, new Vector2(SelectableSize - padding, SelectableSize - padding), $"{friend.NoteOrFriendCode}-Settings"))
         {
             editFriendPopup.Open(friend);
         }
@@ -224,6 +224,6 @@ public class DashboardView : IWindow
 
     private static bool FilterFriend(Friend friend, string searchTerm)
     {
-        return friend.NoteOrId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
+        return friend.NoteOrFriendCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
     }
 }

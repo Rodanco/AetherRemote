@@ -124,7 +124,7 @@ public class ControlWindow : Window
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            ImGui.Text(string.Join("\n", selectedFriends.Select(x => x.NoteOrId)));
+            ImGui.Text(string.Join("\n", selectedFriends.Select(x => x.NoteOrFriendCode)));
             ImGui.EndTooltip();
         }
 
@@ -252,7 +252,7 @@ public class ControlWindow : Window
         {
             var sb = new StringBuilder();
             sb.Append("You made ");
-            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrFriendCode)));
             sb.Append(" do the ");
             sb.Append(emote);
             sb.Append(" emote.");
@@ -283,7 +283,7 @@ public class ControlWindow : Window
             var sb = new StringBuilder();
 
             sb.Append("You made ");
-            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrFriendCode)));
             if (chatMode == ChatMode.Tell)
             {
                 sb.Append("send a tell to ");
@@ -320,7 +320,7 @@ public class ControlWindow : Window
         {
             var sb = new StringBuilder();
             sb.Append("You made ");
-            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrId)));
+            sb.Append(string.Join(", ", selectedFriends.Select(friend => friend.NoteOrFriendCode)));
             switch (glamourerApplyType)
             {
                 case GlamourerApplyType.EquipmentOnly:
