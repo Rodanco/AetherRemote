@@ -1,4 +1,5 @@
 using AetherRemoteClient.Services;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using System.Numerics;
@@ -18,6 +19,6 @@ public class ConfigWindow : Window
 
     public override void Draw()
     {
-        
+
     }
 }

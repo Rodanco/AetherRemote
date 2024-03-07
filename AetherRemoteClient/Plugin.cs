@@ -8,6 +8,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System.IO;
 using XivCommon;
 using XivCommon.Functions;
 
@@ -21,7 +22,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = false;
+    public static readonly bool DeveloperMode = true;
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }

@@ -6,6 +6,7 @@ using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System.Numerics;
 using System.Threading.Tasks;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 namespace AetherRemoteClient.UI;
 
@@ -71,6 +72,33 @@ public class SharedUserInterfaces
         ImGui.PopFont();
 
         return size;
+    }
+
+    /// <summary>
+    /// Returns the size of an icon
+    /// </summary>
+    public static Vector2 CalculateIconSize(FontAwesomeIcon icon)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+        var size = ImGui.CalcTextSize(icon.ToIconString());
+        ImGui.PopFont();
+        return size;
+    }
+
+    public static bool IconButton(FontAwesomeIcon icon, Vector2 size, string? id = null)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+
+        if (id != null)
+            ImGui.PushID(id);
+
+        var result = ImGui.Button(icon.ToIconString(), size);
+
+        if (id != null)
+            ImGui.PopID();
+
+        ImGui.PopFont();
+        return result;
     }
 
     /// <summary>
