@@ -180,7 +180,7 @@ public class ActionQueueProvider
             sb.Append(Emote);
             sb.Append(" emote.");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
         }
     }
 
@@ -219,7 +219,7 @@ public class ActionQueueProvider
             sb.Append(Data);
             sb.Append("].");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
         }
     }
 
@@ -287,7 +287,7 @@ public class ActionQueueProvider
                 sb.Append('.');
             }
             
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
         }
     }
 

@@ -6,6 +6,7 @@ using AetherRemoteCommon;
 using AetherRemoteCommon.Domain;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
@@ -91,7 +92,7 @@ public class ControlWindow : Window
     public override void Draw()
     {
         #region Message
-        SharedUserInterfaces.MediumText(chatMode.ToCondensedString(), SharedUserInterfaces.Gold);
+        SharedUserInterfaces.MediumText(chatMode.ToCondensedString(), ImGuiColors.ParsedOrange);
 
         if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
         {
@@ -167,7 +168,7 @@ public class ControlWindow : Window
         ImGui.Separator();
 
         #region Emote
-        SharedUserInterfaces.MediumText("Emote", SharedUserInterfaces.Gold);
+        SharedUserInterfaces.MediumText("Emote", ImGuiColors.ParsedOrange);
 
         SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, emoteFilter);
             
@@ -185,7 +186,7 @@ public class ControlWindow : Window
 
         #region Glamourer
 
-        SharedUserInterfaces.MediumText("Glamourer", glamourerAccessor.IsGlamourerInstalled ? SharedUserInterfaces.Gold : SharedUserInterfaces.Grey);
+        SharedUserInterfaces.MediumText("Glamourer", glamourerAccessor.IsGlamourerInstalled ? ImGuiColors.ParsedOrange : ImGuiColors.DalamudGrey);
 
         if (!glamourerAccessor.IsGlamourerInstalled) ImGui.BeginDisabled();
 
@@ -257,7 +258,7 @@ public class ControlWindow : Window
             sb.Append(emote);
             sb.Append(" emote.");
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
         }
     }
 
@@ -305,7 +306,7 @@ public class ControlWindow : Window
                 sb.Append('.');
             }
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
         }
     }
 
@@ -339,7 +340,7 @@ public class ControlWindow : Window
             sb.Append(glamourerData);
             sb.Append("].");
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
         }
     }
 

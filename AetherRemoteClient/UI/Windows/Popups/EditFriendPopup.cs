@@ -2,6 +2,7 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
+using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System;
 using System.Numerics;
@@ -60,7 +61,7 @@ public class EditFriendPopup : IPopupWindow
             var id = friendWhoIsBeingEditedTemp.FriendCode;
             var note = friendWhoIsBeingEditedTemp.Note ?? string.Empty;
 
-            SharedUserInterfaces.MediumText("Settings", SharedUserInterfaces.Gold);
+            SharedUserInterfaces.MediumText("Settings", ImGuiColors.ParsedOrange);
             ImGui.Separator();
             ImGui.Text("Id");
             ImGui.SetNextItemWidth(220);

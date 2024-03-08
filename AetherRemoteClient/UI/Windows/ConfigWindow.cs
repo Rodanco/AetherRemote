@@ -1,7 +1,10 @@
+using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Microsoft.AspNetCore.SignalR.Client;
+using System;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Windows;
@@ -20,17 +23,28 @@ public class ConfigWindow : Window
 
     public ConfigWindow(Configuration configuration, NetworkProvider networkProvider) : base("Aether Remote Config", ConfigWindowFlags)
     {
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(300, 300),
+            MaximumSize = new Vector2(300, 300)
+        };
+
         this.configuration = configuration;
         this.networkProvider = networkProvider;
+
         shouldAutoLoginCheckboxValue = configuration.AutoConnect;
 
-        Size = new Vector2(300, 300);
-        SizeCondition = ImGuiCond.Always;
+        if (Plugin.DeveloperMode)
+        {
+            ActionHistory.Log("Joe", "Joe made you do the bees knees emote.", DateTime.Now, LogType.Inbound);
+            ActionHistory.Log("Me", "You made Leroy Derp say \"Hello!!!\" in party chat.", DateTime.Now, LogType.Outbound);
+            ActionHistory.Log("Me", "Blocked a command from WeirdGuy002.", DateTime.Now, LogType.Error);
+        }
     }
 
     public override void Draw()
     {
-        SharedUserInterfaces.MediumText("Settings", SharedUserInterfaces.Gold);
+        SharedUserInterfaces.MediumText("Settings", ImGuiColors.ParsedOrange);
         ImGui.Separator();
 
         if (ImGui.Checkbox("###ShouldAutoLoginCheckbox", ref shouldAutoLoginCheckboxValue))
@@ -56,7 +70,7 @@ public class ConfigWindow : Window
     {
         var connectionState = networkProvider.Connection.State;
         if (connectionState == HubConnectionState.Connected)
-            ImGui.PushStyleColor(ImGuiCol.Button, SharedUserInterfaces.Red);
+            ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.DalamudRed);
         else
             ImGui.BeginDisabled();
 

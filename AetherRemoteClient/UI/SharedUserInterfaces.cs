@@ -1,5 +1,6 @@
 using AetherRemoteClient.Domain;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -12,14 +13,6 @@ namespace AetherRemoteClient.UI;
 
 public class SharedUserInterfaces
 {
-    // Constants
-    public static readonly Vector4 Grey = new(0.5f, 0.5f, 0.5f, 1);
-    public static readonly Vector4 Gold = new(1, 0.66f, 0, 1);
-    public static readonly Vector4 Red = new(1, 0.33f, 0.33f, 1);
-    public static readonly Vector4 Green = new(0.33f, 1, 0.33f, 1);
-    public static readonly Vector4 Blue = new(0.33f, 0.33f, 1, 1);
-    public static readonly Vector4 White = Vector4.One;
-
     public static readonly ImGuiWindowFlags PopupWindowFlags =
         ImGuiWindowFlags.NoTitleBar |
         ImGuiWindowFlags.NoMove |
@@ -121,26 +114,6 @@ public class SharedUserInterfaces
     }
 
     /// <summary>
-    /// Draws a button with an icon. <br/>
-    /// Use this when <see cref="CalculateIconButtonScaledSize"/> is already calculated.
-    /// </summary>
-    public static bool IconButtonScaled(FontAwesomeIcon icon, Vector2 size, string? id = null)
-    {
-        ImGui.PushFont(UiBuilder.IconFont);
-
-        if (id != null)
-            ImGui.PushID(id);
-
-        var result = ImGui.Button(icon.ToIconString(), size);
-
-        if (id != null)
-            ImGui.PopID();
-
-        ImGui.PopFont();
-        return result;
-    }
-
-    /// <summary>
     /// Draws text using the medium font with optional color.
     /// </summary>
     public static void MediumText(string text, Vector4? color = null)
@@ -202,7 +175,6 @@ public class SharedUserInterfaces
         {
             MediumFont?.Push();
             var mediumTextWidth = ImGui.CalcTextSize(text).X;
-            PluginLog.Information($"M: {mediumTextWidth}");
             MediumFont?.Pop();
 
             if (mediumTextWidth <= workingSpace)
@@ -211,42 +183,6 @@ public class SharedUserInterfaces
                 return;
             }
         }
-
-        TextCentered(text, 0, color);
-    }
-
-    public static void DynamicTextCentered(string text, float workingSpace, IPluginLog logger, Vector4? color = null)
-    {
-        logger.Info("Beep");
-        if (BigFontBuilt)
-        {
-            BigFont?.Push();
-            var bigTextWidth = ImGui.CalcTextSize(text).X;
-            BigFont?.Pop();
-
-            if (bigTextWidth <= workingSpace)
-            {
-                logger.Info(bigTextWidth.ToString());
-                BigTextCentered(text, BigFontDefaultOffset, color);
-                return;
-            }
-        }
-
-        if (MediumFontBuilt)
-        {
-            MediumFont?.Push();
-            var mediumTextWidth = ImGui.CalcTextSize(text).X;
-            logger.Information($"M: {mediumTextWidth}");
-            MediumFont?.Pop();
-
-            if (mediumTextWidth <= workingSpace)
-            {
-                MediumTextCentered(text, MediumFontDefaultOffset, color);
-                return;
-            }
-        }
-
-        
 
         TextCentered(text, 0, color);
     }
@@ -259,82 +195,6 @@ public class SharedUserInterfaces
         ImGui.PushStyleColor(ImGuiCol.Text, color);
         ImGui.TextUnformatted(text);
         ImGui.PopStyleColor();
-    }
-
-    /// <summary>
-    /// Text wrap supporting huge words, and colors using & followed by another letter or number.
-    /// Refer to _colorMap dictionary in SharedUserIntefaces for color information.
-    /// </summary>
-    public static void WrappedTextColor(string text)
-    {
-        var pushColorCount = 0;
-        var writeableScreenSpace = ImGui.GetWindowWidth() - 10;
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 0));
-
-        var words = text.Split(' ');
-        for (var i = 0; i < words.Length; i++)
-        {
-            var word = words[i];
-            if (word[0] == '&' && word.Length == 2)
-            {
-                var color = ConvertToColor(word[1]);
-                ImGui.PushStyleColor(ImGuiCol.Text, color);
-                pushColorCount++;
-                continue;
-            }
-
-            var wordWidth = ImGui.CalcTextSize(word).X;
-            if (ImGui.GetCursorPosX() + wordWidth > writeableScreenSpace)
-            {
-                if (word.Length < 16)
-                {
-                    ImGui.NewLine();
-                    ImGui.TextUnformatted(word);
-                }
-                else
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, Grey);
-
-                    var condensedWord = $"{word[..4]}...{word[(word.Length - 4)..]}";
-                    var condensedWordWidth = ImGui.CalcTextSize(condensedWord).X;
-
-                    if (ImGui.GetCursorPosX() + condensedWordWidth > writeableScreenSpace)
-                    {
-                        ImGui.NewLine();
-                    }
-
-                    ImGui.TextUnformatted(condensedWord);
-
-                    ImGui.PopStyleColor();
-
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.PopStyleVar();
-                        ImGui.BeginTooltip();
-                        ImGui.PushStyleColor(ImGuiCol.Text, Grey);
-                        ImGui.TextUnformatted("Full word will shown in game, this is just a preview");
-                        ImGui.PopStyleColor();
-                        ImGui.Separator();
-                        ImGui.TextUnformatted(word);
-                        ImGui.EndTooltip();
-                        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 0));
-                    }
-                }
-            }
-            else
-            {
-                ImGui.TextUnformatted(word);
-            }
-
-            if (i < words.Length - 1) ImGui.SameLine();
-        }
-
-        for (var i = 0; i < pushColorCount; i++)
-        {
-            ImGui.PopStyleColor();
-        }
-
-        ImGui.PopStyleVar();
     }
 
     /// <summary>
@@ -411,7 +271,7 @@ public class SharedUserInterfaces
     {
         if (fontBuilt) font?.Push();
 
-        var userIdColor = color ?? White;
+        var userIdColor = color ?? ImGuiColors.DalamudWhite;
         var windowWidth = ImGui.GetWindowSize().X;
         var userIdWidth = ImGui.CalcTextSize(text).X;
 
@@ -421,23 +281,6 @@ public class SharedUserInterfaces
         ColorText(text, userIdColor);
 
         if (fontBuilt) font?.Pop();
-    }
-
-    /// <summary>
-    /// Converts a char into a Vector4 color.
-    /// </summary>
-    private static Vector4 ConvertToColor(char colorCode)
-    {
-        return colorCode switch
-        {
-            'f' => White,
-            '6' => Gold,
-            'c' => Red,
-            'a' => Green,
-            '9' => Blue,
-            '7' => Grey,
-            _ => White
-        };
     }
 
     private async Task BuildDefaultFontExtraSizes()

@@ -63,7 +63,7 @@ public class MainWindow : Window
 
         // Views
         dashboardView = new DashboardView(logger, pluginInterface, this, configWindow, logWindow, configuration, networkProvider, friendListService, sessionManagerService);
-        loginView = new LoginView(logger, this, configuration, networkProvider, secretProvider, friendListService);
+        loginView = new LoginView(logger, this, networkProvider, secretProvider, friendListService);
         
         currentView = loginView;
 

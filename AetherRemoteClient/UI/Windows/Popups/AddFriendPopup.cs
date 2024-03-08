@@ -2,6 +2,7 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
+using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ public class AddFriendPopup : IPopupWindow
     {
         if (ImGui.BeginPopup(Name, SharedUserInterfaces.PopupWindowFlags))
         {
-            SharedUserInterfaces.MediumText("Add Friend", SharedUserInterfaces.Gold);
+            SharedUserInterfaces.MediumText("Add Friend", ImGuiColors.ParsedOrange);
             ImGui.Separator();
             ImGui.Text("Friend Id");
             ImGui.SetNextItemWidth(220);

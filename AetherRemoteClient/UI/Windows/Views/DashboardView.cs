@@ -5,6 +5,7 @@ using AetherRemoteClient.Services;
 using AetherRemoteClient.UI.Windows.Popups;
 using AetherRemoteCommon;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -89,11 +90,12 @@ public class DashboardView : IWindow
             return;
         }
 
+        var itemSpacing = ImGui.GetStyle().ItemSpacing;
         var windowPadding = ImGui.GetStyle().WindowPadding;
         var friendCode = networkProvider.FriendCode ?? "Unknown";
 
         var copyClipboardButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.Copy, 1.5f);
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Copy, copyClipboardButtonSize))
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Copy, copyClipboardButtonSize))
         {
             ImGui.SetClipboardText(friendCode);
             uiBuilder.AddNotification("Successfully copied id to clipboard", "Aether Remote", NotificationType.Success);
@@ -103,7 +105,7 @@ public class DashboardView : IWindow
 
         // 35 is the size of the buttons, 8 is the default padding. Yay magic numbers!
         var workingSpace = ImGui.GetWindowWidth() - (2 * copyClipboardButtonSize.X) - (4 * windowPadding.X);
-        SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, logger, SharedUserInterfaces.Gold);
+        SharedUserInterfaces.DynamicTextCentered(friendCode, workingSpace, ImGuiColors.ParsedOrange);
 
         var configWindowButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.MagnifyingGlassArrowRight, 1.5f);
         ImGui.SameLine(ImGui.GetWindowWidth() - configWindowButtonSize.X - 8);
@@ -123,13 +125,14 @@ public class DashboardView : IWindow
         ImGui.Spacing();
 
         var addFriendButtonSize = SharedUserInterfaces.CalculateIconButtonScaledSize(FontAwesomeIcon.UserPlus);
-        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (windowPadding.X * 6));
+        ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - addFriendButtonSize.X - (windowPadding.X) - (itemSpacing.X * 2));
 
         if (ImGui.InputTextWithHint("###SearchFriend", "Search Friend", ref searchFriendInput, AetherRemoteConstants.FriendCodeCharLimit))
             friendListFilter.Restart(searchFriendInput);
 
         ImGui.SameLine();
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.UserPlus, addFriendButtonSize))
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - addFriendButtonSize.X - windowPadding.X);
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.UserPlus, addFriendButtonSize))
         {
             ImGui.OpenPopup(addFriendPopup.Name);
         }
@@ -203,7 +206,7 @@ public class DashboardView : IWindow
 
         ImGui.SetCursorPosX(12);
         ImGui.SetCursorPosY(beginCursorY + (SelectableSize / 2) - (iconSize.Y / 2));
-        SharedUserInterfaces.Icon(FontAwesomeIcon.User, offline ? SharedUserInterfaces.Red : SharedUserInterfaces.Green);
+        SharedUserInterfaces.Icon(FontAwesomeIcon.User, offline ? ImGuiColors.DalamudRed : ImGuiColors.ParsedGreen);
         
         ImGui.SameLine(0, 8);
         ImGui.Text(friend.NoteOrFriendCode);

@@ -2,6 +2,7 @@ using AetherRemoteClient.Domain.Interfaces;
 using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteCommon;
+using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System.Numerics;
@@ -13,9 +14,6 @@ public class LoginView : IWindow
 {
     // Injected
     private readonly IPluginLog logger;
-
-    //
-    private readonly Configuration configuration;
     private readonly MainWindow mainWindow;
 
     // Provider
@@ -26,7 +24,6 @@ public class LoginView : IWindow
     private readonly FriendListService friendListService;
 
     private string secretInputBoxValue;
-    private bool shouldAutoLoginCheckboxValue;
 
     private readonly ImGuiInputTextFlags inputTextFlags =
         ImGuiInputTextFlags.AutoSelectAll |
@@ -36,23 +33,21 @@ public class LoginView : IWindow
     private bool pendingLogin = false;
     private bool attemptingLogin = false;
 
-    public LoginView(IPluginLog logger, MainWindow mainWindow, Configuration configuration, NetworkProvider networkProvider,
+    public LoginView(IPluginLog logger, MainWindow mainWindow, NetworkProvider networkProvider,
         SecretProvider secretProvider, FriendListService friendListService)
     {
         this.logger = logger;
-        this.configuration = configuration;
         this.mainWindow = mainWindow;
         this.networkProvider = networkProvider;
         this.secretProvider = secretProvider;
         this.friendListService = friendListService;
 
         secretInputBoxValue = secretProvider.Secret;
-        shouldAutoLoginCheckboxValue = configuration.AutoConnect;
     }
 
     public void Draw()
     {
-        SharedUserInterfaces.BigTextCentered("Aether Remote", 0, SharedUserInterfaces.Gold);
+        SharedUserInterfaces.BigTextCentered("Aether Remote", 0, ImGuiColors.ParsedOrange);
         SharedUserInterfaces.MediumTextCentered("Version 1.0.0");
 
         ImGui.Spacing();
