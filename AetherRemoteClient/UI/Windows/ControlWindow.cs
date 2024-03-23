@@ -258,7 +258,7 @@ public class ControlWindow : Window
             sb.Append(emote);
             sb.Append(" emote.");
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
         }
     }
 
@@ -306,7 +306,7 @@ public class ControlWindow : Window
                 sb.Append('.');
             }
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
         }
     }
 
@@ -340,7 +340,7 @@ public class ControlWindow : Window
             sb.Append(glamourerData);
             sb.Append("].");
 
-            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Outbound);
+            ActionHistory.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
         }
     }
 

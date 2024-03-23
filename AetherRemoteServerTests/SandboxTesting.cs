@@ -14,7 +14,7 @@ public class SandboxTesting
     public void Sandbox()
     {
         var networkService = new NetworkService();
-        var friends = new List<BaseFriend>();
+        var friends = new List<CommonFriend>();
 
         networkService.Register("test", "1", friends);
     }

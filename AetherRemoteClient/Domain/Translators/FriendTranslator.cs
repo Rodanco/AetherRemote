@@ -5,23 +5,23 @@ namespace AetherRemoteClient.Domain.Translators;
 
 public static class FriendTranslator
 {
-    public static BaseFriend DomainToCommon(Friend friend)
+    public static CommonFriend DomainToCommon(Friend friend)
     {
-        var translated = new BaseFriend();
+        var translated = new CommonFriend();
         translated.FriendCode = friend.FriendCode;
         translated.Note = friend.Note;
         translated.Preferences = friend.Preferences;
         return translated;
     }
 
-    public static Friend CommonToDomain(BaseFriend friend)
+    public static Friend CommonToDomain(CommonFriend friend)
     {
         return new Friend(friend.FriendCode, friend.Note, friend.Preferences);
     }
 
-    public static List<BaseFriend> DomainFriendListToCommon(List<Friend> friends)
+    public static List<CommonFriend> DomainFriendListToCommon(List<Friend> friends)
     {
-        var baseFriends = new List<BaseFriend>();
+        var baseFriends = new List<CommonFriend>();
         foreach (var friend in friends)
         {
             baseFriends.Add(DomainToCommon(friend));

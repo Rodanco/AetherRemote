@@ -4,10 +4,10 @@ using System;
 
 namespace AetherRemoteClient.Providers;
 
-public class SecretProvider
+public class SecretProvider(DalamudPluginInterface pluginInterface)
 {
     private const string FileName = "secret.json";
-    private readonly SaveFile<SecretSave> saveSystem;
+    private readonly SaveFile<SecretSave> saveSystem = new(pluginInterface.ConfigDirectory.FullName, FileName);
 
     public string Secret
     {
@@ -19,11 +19,6 @@ public class SecretProvider
         {
             saveSystem.Get.Secret = value;
         }
-    }
-
-    public SecretProvider(DalamudPluginInterface pluginInterface)
-    {
-        saveSystem = new SaveFile<SecretSave>(pluginInterface.ConfigDirectory.FullName, FileName);
     }
 
     public void Save()

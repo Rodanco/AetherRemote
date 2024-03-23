@@ -17,26 +17,19 @@ using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Providers;
 
-public class NetworkProvider
+public class NetworkProvider(IPluginLog logger)
 {
     // Inject
-    private readonly IPluginLog logger;
+    private readonly IPluginLog logger = logger;
 
     // Endpoint
     private const string ConnectionUrl = "http://75.73.3.71:25565/mainHub";
 
     // Network
-    public readonly HubConnection Connection;
+    public readonly HubConnection Connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
 
     // Data
     public string? FriendCode { get; private set; }
-
-    public NetworkProvider(IPluginLog logger)
-    {
-        this.logger = logger;
-
-        Connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
-    }
 
     public async Task<AsyncResult> Connect()
     {

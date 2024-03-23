@@ -2,6 +2,7 @@ using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Providers;
 using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
+using AetherRemoteClient.UI.Experimental;
 using AetherRemoteClient.UI.Windows;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
@@ -52,6 +53,7 @@ public sealed class Plugin : IDalamudPlugin
     private MainWindow mainWindow { get; init; }
     private LogWindow logWindow { get; init; }
     private ConfigWindow configWindow { get; init; }
+    private MainWindowExperiment mainWindowExperiment { get; init; }
 
     public Plugin(
         DalamudPluginInterface pluginInterface,
@@ -97,10 +99,12 @@ public sealed class Plugin : IDalamudPlugin
         logWindow = new LogWindow();
         configWindow = new ConfigWindow(configuration, networkProvider);
         mainWindow = new MainWindow(logger, pluginInterface, configWindow, logWindow, configuration, networkProvider, secretProvider, friendListService, sessionManagerService);
+        mainWindowExperiment = new MainWindowExperiment(networkProvider, friendListProvider, logger, configuration, secretProvider);
 
         windowSystem.AddWindow(logWindow);
         windowSystem.AddWindow(configWindow);
         windowSystem.AddWindow(mainWindow);
+        windowSystem.AddWindow(mainWindowExperiment);
 
         commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -111,6 +115,7 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
         mainWindow.IsOpen = true;
+        mainWindowExperiment.IsOpen = true;
     }
 
     public void Dispose()

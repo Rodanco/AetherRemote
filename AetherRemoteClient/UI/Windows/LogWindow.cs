@@ -31,8 +31,8 @@ public class LogWindow : Window
     {
         return type switch
         {
-            LogType.Inbound => ImGuiColors.TankBlue,
-            LogType.Outbound => ImGuiColors.DalamudOrange,
+            LogType.Recieved => ImGuiColors.TankBlue,
+            LogType.Sent => ImGuiColors.DalamudOrange,
             LogType.Error => ImGuiColors.DalamudRed,
             _ => ImGuiColors.DalamudGrey
         };

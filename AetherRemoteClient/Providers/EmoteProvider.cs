@@ -14,7 +14,7 @@ public class EmoteProvider
 
     public EmoteProvider(IDataManager dataManager)
     {
-        Emotes = new();
+        Emotes = [];
         var emoteSheet = dataManager.Excel.GetSheet<Emote>();
         if (emoteSheet == null) return;
 

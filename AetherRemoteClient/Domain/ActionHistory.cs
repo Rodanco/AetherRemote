@@ -5,7 +5,22 @@ namespace AetherRemoteClient.Domain;
 
 public static class ActionHistory
 {
-    public static readonly List<LogEntry> Logs = new();
+    public static readonly List<LogEntry> Logs =
+    [
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+        new LogEntry("me", "test", DateTime.Now, LogType.Info),
+    ];
 
     public static void Log(string sender, string message, DateTime timestamp, LogType type)
     {
@@ -14,25 +29,18 @@ public static class ActionHistory
     }
 }
 
-public struct LogEntry
+public struct LogEntry(string sender, string message, DateTime timestamp, LogType type)
 {
-    public string Sender;
-    public string Message;
-    public DateTime Timestamp;
-    public LogType Type;
-
-    public LogEntry(string sender, string message, DateTime timestamp, LogType type)
-    {
-        Sender = sender;
-        Message = message;
-        Timestamp = timestamp;
-        Type = type;
-    }
+    public string Sender = sender;
+    public string Message = message;
+    public DateTime Timestamp = timestamp;
+    public LogType Type = type;
 }
 
 public enum LogType
 {
-    Inbound,
-    Outbound,
+    Sent,
+    Recieved,
+    Info,
     Error
 }

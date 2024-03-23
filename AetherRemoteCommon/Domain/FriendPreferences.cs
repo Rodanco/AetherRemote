@@ -3,13 +3,13 @@ namespace AetherRemoteCommon.Domain;
 [Serializable]
 public class FriendPreferences
 {
-    /// <summary>
-    /// If true, ignore commands from associated friend
-    /// </summary>
-    public bool Muted { get; set; } = false;
+    public bool AllowSpeak = true;
+    public bool AllowEmote = true;
+    public bool AllowChangeAppearance = true;
+    public bool AllowChangeEquipment = true;
 
     public override string ToString()
     {
-        return $"FriendPreferences[Muted={Muted}]";
+        return $"FriendPreferences[AllowSpeak={AllowSpeak}, AllowEmote={AllowEmote}, AllowChangeAppearance={AllowChangeAppearance}, AllowChangeEquipment={AllowChangeEquipment}]";
     }
 }

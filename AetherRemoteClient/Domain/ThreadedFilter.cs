@@ -32,7 +32,7 @@ public sealed class ThreadedFilter<T>
     public ThreadedFilter(IList<T> originalList, Func<T, string, bool> predicate)
     {
         this.originalList = originalList;
-        filteredList = new List<T>();
+        filteredList = [];
         filterThread = new Thread(Filter);
         predicateEvent = predicate;
     }

@@ -7,13 +7,13 @@ public class User
 {
     public string Secret = string.Empty;
     public string FriendCode = string.Empty;
-    public List<BaseFriend> FriendList = new();
+    public List<CommonFriend> FriendList = new();
 
     [NonSerialized]
     public string ConnectionId = string.Empty;
 
     public User() { }
-    public User(string secret, string friendCode, string connectionId, List<BaseFriend> friendList)
+    public User(string secret, string friendCode, string connectionId, List<CommonFriend> friendList)
     {
         Secret = secret;
         FriendCode = friendCode;

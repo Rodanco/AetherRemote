@@ -1,8 +1,8 @@
 using AetherRemoteClient.Domain;
+using AetherRemoteCommon;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
@@ -78,14 +78,14 @@ public class SharedUserInterfaces
         return size;
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, Vector2 size, string? id = null)
+    public static bool IconButton(FontAwesomeIcon icon, Vector2? size = null, string? id = null)
     {
         ImGui.PushFont(UiBuilder.IconFont);
 
         if (id != null)
             ImGui.PushID(id);
 
-        var result = ImGui.Button(icon.ToIconString(), size);
+        var result = ImGui.Button(icon.ToIconString(), size ?? Vector2.Zero);
 
         if (id != null)
             ImGui.PopID();
@@ -132,7 +132,7 @@ public class SharedUserInterfaces
     /// <summary>
     /// Draws text using the default font, centered, with optional color.
     /// </summary>
-    public static void TextCentered(string text, int yOffset = 0, Vector4? color = null)
+    public static void TextCentered(string text, Vector4? color = null, int yOffset = 0)
     {
         FontTextCentered(text, null, false, yOffset, color);
     }
@@ -140,7 +140,7 @@ public class SharedUserInterfaces
     /// <summary>
     /// Draws text using the medium font, centered, with optional color.
     /// </summary>
-    public static void MediumTextCentered(string text, int yOffset = 0, Vector4? color = null)
+    public static void MediumTextCentered(string text, Vector4? color = null, int yOffset = 0)
     {
         FontTextCentered(text, MediumFont, MediumFontBuilt, yOffset, color);
     }
@@ -148,7 +148,7 @@ public class SharedUserInterfaces
     /// <summary>
     /// Draws text using the big font, centered, with optional color.
     /// </summary>
-    public static void BigTextCentered(string text, int yOffset = 0, Vector4? color = null)
+    public static void BigTextCentered(string text, Vector4? color = null, int yOffset = 0)
     {
         FontTextCentered(text, BigFont, BigFontBuilt, yOffset, color);
     }
@@ -166,7 +166,7 @@ public class SharedUserInterfaces
 
             if (bigTextWidth <= workingSpace)
             {
-                BigTextCentered(text, BigFontDefaultOffset, color);
+                BigTextCentered(text, color, BigFontDefaultOffset);
                 return;
             }
         }
@@ -179,12 +179,50 @@ public class SharedUserInterfaces
 
             if (mediumTextWidth <= workingSpace)
             {
-                MediumTextCentered(text, MediumFontDefaultOffset, color);
+                MediumTextCentered(text, color, MediumFontDefaultOffset);
                 return;
             }
         }
 
-        TextCentered(text, 0, color);
+        TextCentered(text, color, 0);
+    }
+
+    public static bool MediumInputText(string id, string hint, ref string secretInputBoxText, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
+    {
+        MediumFont?.Push();
+        var inputText = ImGui.InputTextWithHint(id, hint, ref secretInputBoxText, 
+            AetherRemoteConstants.SecretCharLimit, flags);
+        MediumFont?.Pop();
+        return inputText;
+    }
+
+    public static bool MediumButton(string id, string label, Vector2? size = null)
+    {
+        MediumFont?.Push();
+        ImGui.PushID(id);
+        var button = ImGui.Button(label, size ?? Vector2.Zero);
+        MediumFont?.Pop();
+        return button;
+    }
+
+    public static void PushMediumFont()
+    {
+        MediumFont?.Push();
+    }
+
+    public static void PopMediumFont()
+    {
+        MediumFont?.Pop();
+    }
+
+    public static void PushBigFont()
+    {
+        BigFont?.Push();
+    }
+
+    public static void PopBigFont()
+    {
+        BigFont?.Pop();
     }
 
     /// <summary>

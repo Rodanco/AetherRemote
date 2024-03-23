@@ -47,7 +47,7 @@ public class LoginView : IWindow
 
     public void Draw()
     {
-        SharedUserInterfaces.BigTextCentered("Aether Remote", 0, ImGuiColors.ParsedOrange);
+        SharedUserInterfaces.BigTextCentered("Aether Remote", ImGuiColors.ParsedOrange);
         SharedUserInterfaces.MediumTextCentered("Version 1.0.0");
 
         ImGui.Spacing();

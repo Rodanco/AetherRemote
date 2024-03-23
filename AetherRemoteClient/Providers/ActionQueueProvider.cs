@@ -12,17 +12,11 @@ namespace AetherRemoteClient.Providers;
 /// <summary>
 /// Queues actions on the main XIV thread.
 /// </summary>
-public class ActionQueueProvider
+public class ActionQueueProvider(IPluginLog logger, IClientState clientState, Chat chat, GlamourerAccessor glamourerAccessor)
 {
     // Data
-    private readonly ChatActionQueue chatActionQueue;
-    private readonly GlamourerActionQueue glamourerActionQueue;
-
-    public ActionQueueProvider(IPluginLog logger, IClientState clientState, Chat chat, GlamourerAccessor glamourerAccessor)
-    {
-        chatActionQueue = new ChatActionQueue(logger, clientState, chat);
-        glamourerActionQueue = new GlamourerActionQueue(logger, clientState, glamourerAccessor);
-    }
+    private readonly ChatActionQueue chatActionQueue = new(logger, clientState, chat);
+    private readonly GlamourerActionQueue glamourerActionQueue = new(logger, clientState, glamourerAccessor);
 
     public void Update()
     {
@@ -48,16 +42,10 @@ public class ActionQueueProvider
         chatActionQueue.EnqueueAction(action);
     }
 
-    private class ChatActionQueue : ActionQueue<IChatAction>
+    private class ChatActionQueue(IPluginLog logger, IClientState clientState, Chat chat) : ActionQueue<IChatAction>(logger, clientState)
     {
-        private readonly IClientState clientState;
-        private readonly Chat chat;
-
-        public ChatActionQueue(IPluginLog logger, IClientState clientState, Chat chat) : base(logger, clientState)
-        {
-            this.clientState = clientState;
-            this.chat = chat;
-        }
+        private readonly IClientState clientState = clientState;
+        private readonly Chat chat = chat;
 
         protected override void Process(IChatAction action)
         {
@@ -70,16 +58,10 @@ public class ActionQueueProvider
         }
     }
 
-    private class GlamourerActionQueue : ActionQueue<BecomeAction>
+    private class GlamourerActionQueue(IPluginLog logger, IClientState clientState, GlamourerAccessor glamourerAccessor) : ActionQueue<BecomeAction>(logger, clientState)
     {
-        private readonly IClientState clientState;
-        private readonly GlamourerAccessor glamourerAccessor;
-
-        public GlamourerActionQueue(IPluginLog logger, IClientState clientState, GlamourerAccessor glamourerAccessor) : base(logger, clientState)
-        {
-            this.clientState = clientState;
-            this.glamourerAccessor = glamourerAccessor;
-        }
+        private readonly IClientState clientState = clientState;
+        private readonly GlamourerAccessor glamourerAccessor = glamourerAccessor;
 
         protected override void Process(BecomeAction action)
         {
@@ -94,13 +76,13 @@ public class ActionQueueProvider
         }
     }
 
-    private abstract class ActionQueue<T>
+    private abstract class ActionQueue<T>(IPluginLog logger, IClientState clientState)
     {
         protected virtual int MinProcessTime { get; set; } = 1000;
         protected virtual int MaxProcessTime { get; set; } = 3000;
 
-        private readonly IPluginLog logger;
-        private readonly IClientState clientState;
+        private readonly IPluginLog logger = logger;
+        private readonly IClientState clientState = clientState;
 
         private readonly ConcurrentQueue<T> queue = new();
         private readonly Random random = new();
@@ -109,12 +91,6 @@ public class ActionQueueProvider
         private double timeUntilNextProcess = 0;
 
         protected abstract void Process(T action);
-
-        public ActionQueue(IPluginLog logger, IClientState clientState)
-        {
-            this.logger = logger;
-            this.clientState = clientState;
-        }
 
         public void EnqueueAction(T action)
         {
@@ -156,16 +132,10 @@ public class ActionQueueProvider
         }
     }
 
-    private class EmoteAction : IChatAction
+    private class EmoteAction(string sender, string emote) : IChatAction
     {
-        public string Sender;
-        public string Emote;
-
-        public EmoteAction(string sender, string emote)
-        {
-            Sender = sender;
-            Emote = emote;
-        }
+        public string Sender = sender;
+        public string Emote = emote;
 
         public string Build()
         {
@@ -180,22 +150,15 @@ public class ActionQueueProvider
             sb.Append(Emote);
             sb.Append(" emote.");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 
-    private class BecomeAction : IQueueAction
+    private class BecomeAction(string sender, string data, GlamourerApplyType applyType) : IQueueAction
     {
-        public string Sender;
-        public string Data;
-        public GlamourerApplyType ApplyType;
-
-        public BecomeAction(string sender, string data, GlamourerApplyType applyType)
-        {
-            Sender = sender;
-            Data = data;
-            ApplyType = applyType;
-        }
+        public string Sender = sender;
+        public string Data = data;
+        public GlamourerApplyType ApplyType = applyType;
 
         public void Log()
         {
@@ -219,24 +182,16 @@ public class ActionQueueProvider
             sb.Append(Data);
             sb.Append("].");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 
-    private class SpeakAction : IChatAction
+    private class SpeakAction(string sender, string message, ChatMode channel, string? extra) : IChatAction
     {
-        public string Sender;
-        public string Message;
-        public ChatMode Channel;
-        public string? Extra;
-
-        public SpeakAction(string sender, string message, ChatMode channel, string? extra)
-        {
-            Sender = sender;
-            Message = message;
-            Channel = channel;
-            Extra = extra;
-        }
+        public string Sender = sender;
+        public string Message = message;
+        public ChatMode Channel = channel;
+        public string? Extra = extra;
 
         public string Build()
         {
@@ -287,7 +242,7 @@ public class ActionQueueProvider
                 sb.Append('.');
             }
             
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Inbound);
+            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 

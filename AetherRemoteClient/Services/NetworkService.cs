@@ -7,9 +7,11 @@ using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.AspNetCore.SignalR.Client;
+using System;
 
 namespace AetherRemoteClient.Services;
 
+[Obsolete("Network Client is no longer needed as all logic will happen in the objects invoking these methods")]
 public class NetworkService
 {
     // Injected

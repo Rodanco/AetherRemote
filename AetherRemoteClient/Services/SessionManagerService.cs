@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Services;
 
+[Obsolete("Session manager is no longer needed as new windows are not being created")]
 public class SessionManagerService
 {
     // Injected

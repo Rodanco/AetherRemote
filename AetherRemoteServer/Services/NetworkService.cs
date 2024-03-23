@@ -24,12 +24,12 @@ public interface INetworkService
     /// <summary>
     /// Registers a user as online.<br/>
     /// </summary>
-    public NetworkResult Register(string secret, string connectionId, List<BaseFriend> friendList);
+    public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList);
 
     /// <summary>
     /// Creates or updates a friend in user with provided secret's friend list. <br/>
     /// </summary>
-    public NetworkResult CreateOrUpdateFriend(string secret, BaseFriend friendToCreateOrUpdate);
+    public NetworkResult CreateOrUpdateFriend(string secret, CommonFriend friendToCreateOrUpdate);
 
     /// <summary>
     /// Deletes a friend in user with provided secret's friend list. <br/>
@@ -70,7 +70,7 @@ public class NetworkService : INetworkService
         return storageService.GetFriendCode(secret);
     }
 
-    public NetworkResult Register(string secret, string connectionId, List<BaseFriend> friendList)
+    public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList)
     {
         var friendCode = storageService.GetFriendCode(secret);
         if (friendCode == null)
@@ -86,7 +86,7 @@ public class NetworkService : INetworkService
         return new NetworkResult(true);
     }
 
-    public NetworkResult CreateOrUpdateFriend(string secret, BaseFriend friendToCreateOrUpdate)
+    public NetworkResult CreateOrUpdateFriend(string secret, CommonFriend friendToCreateOrUpdate)
     {
         var user = onlineUsers.FirstOrDefault(u => u.Secret == secret);
         if (user == null)

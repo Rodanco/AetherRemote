@@ -53,11 +53,13 @@ public class SaveFile<T>
         Task.Run(SaveAsync);
     }
 
+    private readonly JsonSerializerOptions serializationOptions = new() { WriteIndented = true };
+
     public async Task SaveAsync()
     {
         try
         {
-            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(save, new JsonSerializerOptions() { WriteIndented = true }));
+            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(save, serializationOptions));
         }
         catch
         {

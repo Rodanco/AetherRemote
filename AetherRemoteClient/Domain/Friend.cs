@@ -9,17 +9,17 @@ public class Friend
     /// <summary>
     /// Id of the friend (UserId)
     /// </summary>
-    public string FriendCode { get; set; } = string.Empty;
+    public string FriendCode = string.Empty;
 
     /// <summary>
     /// A name set by the client to identify a friend more easily
     /// </summary>
-    public string? Note { get; set; } = null;
+    public string? Note = null;
 
     /// <summary>
     /// Friend preferences
     /// </summary>
-    public FriendPreferences? Preferences { get; set; } = null;
+    public FriendPreferences Preferences = new();
 
     /// <summary>
     /// Returns a friend's given note, or their id
@@ -42,7 +42,7 @@ public class Friend
     { 
         FriendCode = id;
         Note = note;
-        Preferences = preferences;
+        Preferences = preferences ?? new();
     }
 
     public Friend Copy()

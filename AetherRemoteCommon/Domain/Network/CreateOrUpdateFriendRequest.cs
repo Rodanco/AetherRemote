@@ -3,15 +3,15 @@ namespace AetherRemoteCommon.Domain.Network;
 public class CreateOrUpdateFriendRequest
 {
     public string Secret { get; set; }
-    public BaseFriend Friend { get; set; }
+    public CommonFriend Friend { get; set; }
 
     public CreateOrUpdateFriendRequest()
     {
         Secret = string.Empty;
-        Friend = new BaseFriend();
+        Friend = new CommonFriend();
     }
 
-    public CreateOrUpdateFriendRequest(string secret, BaseFriend friend)
+    public CreateOrUpdateFriendRequest(string secret, CommonFriend friend)
     {
         Secret = secret;
         Friend = friend;

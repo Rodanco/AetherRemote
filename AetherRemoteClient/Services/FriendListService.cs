@@ -1,12 +1,14 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using Dalamud.Plugin.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AetherRemoteClient.Services;
 
+[Obsolete("Ideally, move away from this provider as it will never be duplicating logic in a way that is needed by multiple systems.")]
 public class FriendListService
 {
     // Injected
