@@ -1,6 +1,7 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
@@ -52,6 +53,18 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
     // Collection of permissions
     private string friendNote = string.Empty;
     private bool allowSpeak = false;
+
+    private bool allowSay = true;
+    private bool allowYell = true;
+    private bool allowShout = true;
+    private bool allowTell = true;
+    private bool allowParty = true;
+    private bool allowAlliance = true;
+    private bool allowFreeCompany = true;
+    private bool allowLinkshell = true;
+    private bool allowCrossworldLinkshell = true;
+    private bool allowPvPTeam = true;
+    
     private bool allowEmote = false;
     private bool allowChangeAppearance = false;
     private bool allowChangeEquipment = false;
@@ -178,7 +191,6 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
             ImGui.Separator();
             SharedUserInterfaces.TextCentered("General Permissions");
 
-            // TODO: Expand this to include an allow for every chat channel
             ImGui.Checkbox("Allow force speak", ref allowSpeak);
             ImGui.SameLine();
             SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
@@ -188,6 +200,27 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 ImGui.Text("Allow friend to force you to say things in chat");
                 ImGui.EndTooltip();
             }
+
+            var allowSpeakSnapshot = new Snapshot<bool>(allowSpeak);
+
+            if(allowSpeakSnapshot.Value == false) ImGui.BeginDisabled();
+
+            ImGui.Indent();
+
+            ImGui.Checkbox("Say", ref allowSay);
+            ImGui.Checkbox("Yell", ref allowYell);
+            ImGui.Checkbox("Shout", ref allowShout);
+            ImGui.Checkbox("Tell", ref allowTell);
+            ImGui.Checkbox("Party", ref allowParty);
+            ImGui.Checkbox("Alliance", ref allowAlliance);
+            ImGui.Checkbox("Free Company", ref allowFreeCompany);
+            ImGui.Checkbox("Linkshells", ref allowLinkshell);
+            ImGui.Checkbox("Crosworld Linkshells", ref allowCrossworldLinkshell);
+            ImGui.Checkbox("PVP Team", ref allowPvPTeam);
+
+            ImGui.Unindent();
+
+            if (allowSpeakSnapshot.Value == false) ImGui.EndDisabled();
 
             ImGui.Checkbox("Allow force emote", ref allowEmote);
             ImGui.SameLine();
@@ -232,12 +265,21 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 if (friendBeingEditted == null)
                     return;
 
-                // TODO: Move this to a more static variable
                 friendBeingEditted.Note = friendNote == string.Empty ? null : friendNote;
                 friendBeingEditted.Preferences.AllowEmote = allowEmote;
                 friendBeingEditted.Preferences.AllowSpeak = allowSpeak;
                 friendBeingEditted.Preferences.AllowChangeAppearance = allowChangeAppearance;
                 friendBeingEditted.Preferences.AllowChangeEquipment = allowChangeEquipment;
+                friendBeingEditted.Preferences.AllowSay = allowSay;
+                friendBeingEditted.Preferences.AllowYell = allowYell;
+                friendBeingEditted.Preferences.AllowShout = allowShout;
+                friendBeingEditted.Preferences.AllowTell = allowTell;
+                friendBeingEditted.Preferences.AllowParty= allowParty;
+                friendBeingEditted.Preferences.AllowAlliance = allowAlliance;
+                friendBeingEditted.Preferences.AllowFreeCompany = allowFreeCompany;
+                friendBeingEditted.Preferences.AllowLinkshell = allowLinkshell;
+                friendBeingEditted.Preferences.AllowCrossworldLinkshell = allowCrossworldLinkshell;
+                friendBeingEditted.Preferences.AllowPvPTeam = allowPvPTeam;
 
                 friendListProvider.Save();
             }
@@ -266,6 +308,16 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
         allowEmote = friend.Preferences.AllowEmote;
         allowChangeAppearance = friend.Preferences.AllowChangeAppearance;
         allowChangeEquipment = friend.Preferences.AllowChangeEquipment;
+        allowSay = friend.Preferences.AllowSay;
+        allowYell = friend.Preferences.AllowYell;
+        allowShout = friend.Preferences.AllowShout;
+        allowTell = friend.Preferences.AllowTell;
+        allowParty = friend.Preferences.AllowParty;
+        allowAlliance = friend.Preferences.AllowAlliance;
+        allowFreeCompany = friend.Preferences.AllowFreeCompany;
+        allowLinkshell = friend.Preferences.AllowLinkshell;
+        allowCrossworldLinkshell = friend.Preferences.AllowCrossworldLinkshell;
+        allowPvPTeam = friend.Preferences.AllowPvPTeam;
     }
 
     private static bool FilterFriend(Friend friend, string searchTerm)

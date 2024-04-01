@@ -131,6 +131,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         glamourerAccessor.Dispose();
 
+
         windowSystem.RemoveAllWindows();
         commandManager.RemoveHandler(CommandName);
 
@@ -140,6 +141,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
+        mainWindowExperiment.IsOpen = true;
         mainWindow.IsOpen = true;
     }
 
