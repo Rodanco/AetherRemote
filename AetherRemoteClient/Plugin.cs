@@ -99,7 +99,16 @@ public sealed class Plugin : IDalamudPlugin
         logWindow = new LogWindow();
         configWindow = new ConfigWindow(configuration, networkProvider);
         mainWindow = new MainWindow(logger, pluginInterface, configWindow, logWindow, configuration, networkProvider, secretProvider, friendListService, sessionManagerService);
-        mainWindowExperiment = new MainWindowExperiment(networkProvider, friendListProvider, logger, configuration, secretProvider);
+        mainWindowExperiment = new MainWindowExperiment(
+            networkProvider, 
+            friendListProvider, 
+            logger, 
+            configuration, 
+            secretProvider,
+            emoteProvider,
+            glamourerAccessor,
+            targetManager
+            );
 
         windowSystem.AddWindow(logWindow);
         windowSystem.AddWindow(configWindow);
