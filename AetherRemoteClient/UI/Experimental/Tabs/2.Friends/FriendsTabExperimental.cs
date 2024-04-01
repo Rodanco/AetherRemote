@@ -52,8 +52,8 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
 
     // Collection of permissions
     private string friendNote = string.Empty;
-    private bool allowSpeak = false;
 
+    private bool allowSpeak = false;
     private bool allowSay = true;
     private bool allowYell = true;
     private bool allowShout = true;
@@ -66,6 +66,7 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
     private bool allowPvPTeam = true;
     
     private bool allowEmote = false;
+
     private bool allowChangeAppearance = false;
     private bool allowChangeEquipment = false;
 
@@ -157,8 +158,8 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
     private void DrawFriendSetting()
     {
         // Store the value of the variable in case it changes mid-execution
-        var friendBeingEdittedLocked = friendBeingEditted;
-        if (friendBeingEdittedLocked == null)
+        var friendBeingEdittedSnapshot = new Snapshot<Friend?>(friendBeingEditted);
+        if (friendBeingEdittedSnapshot.Value == null)
         {
             SharedUserInterfaces.PushBigFont();
             var windowCenter = new Vector2(ImGui.GetWindowSize().X / 2, ImGui.GetWindowSize().Y / 2);
@@ -172,7 +173,7 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
         }
         else
         {
-            SharedUserInterfaces.BigTextCentered($"Editing {friendBeingEdittedLocked.FriendCode}");
+            SharedUserInterfaces.BigTextCentered($"Editing {friendBeingEdittedSnapshot.Value.FriendCode}");
             ImGui.Separator();
 
             SharedUserInterfaces.TextCentered("Details");
@@ -201,23 +202,23 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 ImGui.EndTooltip();
             }
 
-            var allowSpeakSnapshot = new Snapshot<bool>(allowSpeak);
-
-            if(allowSpeakSnapshot.Value == false) ImGui.BeginDisabled();
-
             ImGui.Indent();
-
-            ImGui.Checkbox("Say", ref allowSay);
-            ImGui.Checkbox("Yell", ref allowYell);
-            ImGui.Checkbox("Shout", ref allowShout);
-            ImGui.Checkbox("Tell", ref allowTell);
-            ImGui.Checkbox("Party", ref allowParty);
-            ImGui.Checkbox("Alliance", ref allowAlliance);
-            ImGui.Checkbox("Free Company", ref allowFreeCompany);
-            ImGui.Checkbox("Linkshells", ref allowLinkshell);
-            ImGui.Checkbox("Crosworld Linkshells", ref allowCrossworldLinkshell);
-            ImGui.Checkbox("PVP Team", ref allowPvPTeam);
-
+            var allowSpeakSnapshot = new Snapshot<bool>(allowSpeak);
+            if (allowSpeakSnapshot.Value == false) ImGui.BeginDisabled();
+            if (ImGui.BeginTable("SpeakPermissionsTable", 2))
+            {
+                ImGui.TableNextColumn(); ImGui.Checkbox("Say", ref allowSay);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Yell", ref allowYell);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Shout", ref allowShout);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Tell", ref allowTell);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Party", ref allowParty);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Alliance", ref allowAlliance);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Free Company", ref allowFreeCompany);
+                ImGui.TableNextColumn(); ImGui.Checkbox("PVP Team", ref allowPvPTeam);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Linkshells", ref allowLinkshell);
+                ImGui.TableNextColumn(); ImGui.Checkbox("Crosworld Linkshells", ref allowCrossworldLinkshell);
+                ImGui.EndTable();
+            }
             ImGui.Unindent();
 
             if (allowSpeakSnapshot.Value == false) ImGui.EndDisabled();
@@ -255,16 +256,12 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 ImGui.EndTooltip();
             }
 
-            // TODO: Define what 's' is
             var saveButtonSize = new Vector2(40, 40);
-            var s = ImGui.GetWindowSize() - saveButtonSize - (4 * ImGui.GetStyle().FramePadding);
-            ImGui.SetCursorPos(s);
+            var saveButtonPosition = ImGui.GetWindowSize() - saveButtonSize - (4 * ImGui.GetStyle().FramePadding);
+            ImGui.SetCursorPos(saveButtonPosition);
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
-            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Save, saveButtonSize))
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Save, saveButtonSize) && friendBeingEditted != null)
             {
-                if (friendBeingEditted == null)
-                    return;
-
                 friendBeingEditted.Note = friendNote == string.Empty ? null : friendNote;
                 friendBeingEditted.Preferences.AllowEmote = allowEmote;
                 friendBeingEditted.Preferences.AllowSpeak = allowSpeak;
@@ -274,7 +271,7 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 friendBeingEditted.Preferences.AllowYell = allowYell;
                 friendBeingEditted.Preferences.AllowShout = allowShout;
                 friendBeingEditted.Preferences.AllowTell = allowTell;
-                friendBeingEditted.Preferences.AllowParty= allowParty;
+                friendBeingEditted.Preferences.AllowParty = allowParty;
                 friendBeingEditted.Preferences.AllowAlliance = allowAlliance;
                 friendBeingEditted.Preferences.AllowFreeCompany = allowFreeCompany;
                 friendBeingEditted.Preferences.AllowLinkshell = allowLinkshell;

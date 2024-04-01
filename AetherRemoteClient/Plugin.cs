@@ -141,8 +141,8 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        mainWindowExperiment.IsOpen = true;
         mainWindow.IsOpen = true;
+        mainWindowExperiment.IsOpen = true;
     }
 
     private void DrawUI()
