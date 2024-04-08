@@ -6,5 +6,5 @@ namespace AetherRemoteClient.Domain;
 /// </summary>
 public class Snapshot<T>(T value)
 {
-    public T Value = value;
+    public T Value { get; private set; } = value;
 }

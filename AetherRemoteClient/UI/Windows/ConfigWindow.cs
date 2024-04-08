@@ -36,9 +36,9 @@ public class ConfigWindow : Window
 
         if (Plugin.DeveloperMode)
         {
-            ActionHistory.Log("Joe", "Joe made you do the bees knees emote.", DateTime.Now, LogType.Recieved);
-            ActionHistory.Log("Me", "You made Leroy Derp say \"Hello!!!\" in party chat.", DateTime.Now, LogType.Sent);
-            ActionHistory.Log("Me", "Blocked a command from WeirdGuy002.", DateTime.Now, LogType.Error);
+            AetherRemoteLogging.Log("Joe", "Joe made you do the bees knees emote.", DateTime.Now, LogType.Recieved);
+            AetherRemoteLogging.Log("Me", "You made Leroy Derp say \"Hello!!!\" in party chat.", DateTime.Now, LogType.Sent);
+            AetherRemoteLogging.Log("Me", "Blocked a command from WeirdGuy002.", DateTime.Now, LogType.Error);
         }
     }
 

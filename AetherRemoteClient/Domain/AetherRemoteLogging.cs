@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AetherRemoteClient.Domain;
 
-public static class ActionHistory
+public static class AetherRemoteLogging
 {
     public static readonly List<LogEntry> Logs =
     [

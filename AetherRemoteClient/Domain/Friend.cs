@@ -4,22 +4,22 @@ using System;
 namespace AetherRemoteClient.Domain;
 
 [Serializable]
-public class Friend
+public class Friend(string id, string? note = null, FriendPreferences? preferences = null)
 {
     /// <summary>
     /// Id of the friend (UserId)
     /// </summary>
-    public string FriendCode = string.Empty;
+    public string FriendCode = id;
 
     /// <summary>
     /// A name set by the client to identify a friend more easily
     /// </summary>
-    public string? Note = null;
+    public string? Note = note;
 
     /// <summary>
     /// Friend preferences
     /// </summary>
-    public FriendPreferences Preferences = new();
+    public FriendPreferences Preferences = preferences ?? new();
 
     /// <summary>
     /// Returns a friend's given note, or their id
@@ -37,13 +37,6 @@ public class Friend
     /// </summary>
     [NonSerialized]
     public bool Selected = false;
-
-    public Friend(string id, string? note = null, FriendPreferences? preferences = null)
-    { 
-        FriendCode = id;
-        Note = note;
-        Preferences = preferences ?? new();
-    }
 
     public Friend Copy()
     {

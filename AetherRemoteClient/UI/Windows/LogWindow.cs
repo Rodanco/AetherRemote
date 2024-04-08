@@ -19,10 +19,15 @@ public class LogWindow : Window
 
     public override void Draw()
     {
-        foreach (var log in ActionHistory.Logs)
+        foreach (var log in AetherRemoteLogging.Logs)
         {
             SharedUserInterfaces.ColorText($"[{log.Type}] {log.Timestamp}", MessageColorMap(log.Type));
             ImGui.TextWrapped(log.Message);
+            if (Plugin.DeveloperMode)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(ImGuiColors.DalamudGrey, "(DeveloperMode)");
+            }
             ImGui.Separator();
         }
     }

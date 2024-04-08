@@ -11,6 +11,9 @@ using System.Collections.Generic;
 using System.Numerics;
 using AetherRemoteClient.Accessors.Glamourer;
 using Dalamud.Game.ClientState.Objects;
+using System.Threading.Tasks;
+using System.Text;
+using System.Linq;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 
@@ -18,6 +21,9 @@ public class SessionsTabExperimental : ITab
 {
     // Injected
     private readonly FriendListProvider friendListProvider;
+    private readonly SecretProvider secretProvider;
+    private readonly EmoteProvider emoteProvider;
+    private readonly NetworkProvider networkProvider;
     private readonly GlamourerAccessor glamourerAccessor;
     private readonly IPluginLog logger;
     private readonly ITargetManager targetManager;
@@ -36,19 +42,25 @@ public class SessionsTabExperimental : ITab
     private bool applyCustomization = true;
     private bool applyEquipment = true;
 
-    private bool sessionFriendListCollapsed = true;
+    private bool showFriendsInSession = true;
 
     private static Vector2 ButtonSize = new(30, 30);
     private static Vector2 BigButtonSize = new(40, 40);
+    private static readonly int LinkshellSelectorWidth = 42;
 
     public SessionsTabExperimental(
         FriendListProvider friendListProvider,
+        SecretProvider secretProvider,
+        NetworkProvider networkProvider,
         EmoteProvider emoteProvider,
         GlamourerAccessor glamourerAccessor,
         IPluginLog logger,
         ITargetManager targetManager)
     {
         this.friendListProvider = friendListProvider;
+        this.secretProvider = secretProvider;
+        this.networkProvider = networkProvider;
+        this.emoteProvider = emoteProvider;
         this.glamourerAccessor = glamourerAccessor;
         this.logger = logger;
         this.targetManager = targetManager;
@@ -63,9 +75,9 @@ public class SessionsTabExperimental : ITab
 
         currentSession = sessions[0];
 
-        currentSession.FriendsInSession.Add(new Friend("Joe"));
-        currentSession.FriendsInSession.Add(new Friend("Momma"));
-        currentSession.FriendsInSession.Add(new Friend("Sugma"));
+        currentSession.TargetFriends.Add(new Friend("Joe"));
+        currentSession.TargetFriends.Add(new Friend("Momma"));
+        currentSession.TargetFriends.Add(new Friend("Sugma"));
 
         emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) => 
         {
@@ -79,8 +91,8 @@ public class SessionsTabExperimental : ITab
 
         if (ImGui.BeginTabItem("Sessions"))
         {
-            // TODO: Scale this. It's currently button size + 8 * 2 (some padding value idk)
-            if (ImGui.BeginChild("SessionListArea", new Vector2(BigButtonSize.X + 16, 0), true))
+            var sessionListArea = new Vector2(BigButtonSize.X + (style.FramePadding.X * 2), 0);
+            if (ImGui.BeginChild("SessionListArea", sessionListArea, true))
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
 
@@ -94,7 +106,6 @@ public class SessionsTabExperimental : ITab
                 {
                     if (SharedUserInterfaces.IconButton(FontAwesomeIcon.User, BigButtonSize, session.Id))
                     {
-                        // TODO: Display session details
                         currentSession = session;
                     }
 
@@ -113,25 +124,23 @@ public class SessionsTabExperimental : ITab
 
             ImGui.SameLine();
 
-            // TODO: Find a way to rename this to include the original name without making it overly verbose
-            var snapshot = new Snapshot<bool>(sessionFriendListCollapsed);
-            var sessionAreaSize = snapshot.Value ? Vector2.Zero : new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0);
+            var showFriendsInSessionSnapshot = new Snapshot<bool>(showFriendsInSession);
+            var sessionAreaSize = showFriendsInSessionSnapshot.Value ? Vector2.Zero : new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0);
             if (ImGui.BeginChild("SessionArea", sessionAreaSize, true))
             {
                 SharedUserInterfaces.BigTextCentered(currentSession.Name);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ButtonSize.X - style.ItemSpacing.X);
-                var icon = snapshot.Value ? FontAwesomeIcon.UserFriends : FontAwesomeIcon.ArrowRight;
+                var icon = showFriendsInSessionSnapshot.Value ? FontAwesomeIcon.UserFriends : FontAwesomeIcon.ArrowRight;
                 if (SharedUserInterfaces.IconButton(icon, ButtonSize))
                 {
-                    // Don't include this in the snapshot, because this is
-                    sessionFriendListCollapsed = !sessionFriendListCollapsed;
+                    showFriendsInSession = !showFriendsInSession;
                 }
                 if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
-                    var text = snapshot.Value ? "Expand session list" : "Collapse session list";
+                    var text = showFriendsInSessionSnapshot.Value ? "Expand session list" : "Collapse session list";
                     ImGui.Text(text);
                     ImGui.EndTooltip();
                 }
@@ -147,7 +156,7 @@ public class SessionsTabExperimental : ITab
 
             ImGui.SameLine();
 
-            if (!snapshot.Value)
+            if (!showFriendsInSessionSnapshot.Value)
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 
@@ -155,7 +164,7 @@ public class SessionsTabExperimental : ITab
                 {
                     if (ImGui.BeginTable("FriendListTable", 1, ImGuiTableFlags.Borders))
                     {
-                        foreach (var friend in currentSession.FriendsInSession)
+                        foreach (var friend in currentSession.TargetFriends)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableSetColumnIndex(0);
@@ -169,7 +178,7 @@ public class SessionsTabExperimental : ITab
                             {
                                 
                             }
-                            ImGui.PopStyleColor(1);
+                            ImGui.PopStyleColor();
                         }
 
                         ImGui.EndTable();
@@ -194,7 +203,7 @@ public class SessionsTabExperimental : ITab
         if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
         {
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(42);
+            ImGui.SetNextItemWidth(LinkshellSelectorWidth);
 
             if (ImGui.BeginCombo("###LinkshellSelector", shellNumber.ToString()))
             {
@@ -252,7 +261,55 @@ public class SessionsTabExperimental : ITab
 
         if (shouldProcessSpeakCommand)
         {
+            _ = ProcessSpeakCommand();
+        }
+    }
 
+    private async Task ProcessSpeakCommand()
+    {
+        if (message.Length <= 0)
+            return;
+
+        string? extra = null;
+        if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
+        {
+            extra = shellNumber.ToString();
+        }
+        else if (chatMode == ChatMode.Tell)
+        {
+            if (tellTarget.Length > 0)
+                extra = tellTarget;
+        }
+
+        var result = await networkProvider.IssueSpeakCommand(secretProvider.Secret, currentSession.TargetFriends, message, chatMode, extra);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("You made ");
+            sb.Append(currentSession.TargetFriendsAsList());
+            if (chatMode == ChatMode.Tell)
+            {
+                sb.Append("send a tell to ");
+                sb.Append(extra);
+                sb.Append(" saying: \"");
+                sb.Append(message);
+                sb.Append("\".");
+            }
+            else
+            {
+                sb.Append("say: \"");
+                sb.Append(message);
+                sb.Append("\" in ");
+                sb.Append(chatMode.ToCondensedString());
+                if (chatMode == ChatMode.Linkshell || chatMode == ChatMode.CrossworldLinkshell)
+                {
+                    sb.Append(extra);
+                }
+                sb.Append('.');
+            }
+
+            AetherRemoteLogging.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
         }
     }
 
@@ -273,7 +330,27 @@ public class SessionsTabExperimental : ITab
 
         if (shouldProcessEmoteCommand)
         {
+            _ = ProcessEmoteCommand();
+        }
+    }
 
+    private async Task ProcessEmoteCommand()
+    {
+        var validEmote = emoteProvider.Emotes.Contains(emote);
+        if (validEmote == false)
+            return;
+
+        var result = await networkProvider.IssueEmoteCommand(secretProvider.Secret, currentSession.TargetFriends, emote);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+            sb.Append("You made ");
+            sb.Append(currentSession.TargetFriendsAsList());
+            sb.Append(" do the ");
+            sb.Append(emote);
+            sb.Append(" emote.");
+
+            AetherRemoteLogging.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
         }
     }
 
@@ -281,8 +358,9 @@ public class SessionsTabExperimental : ITab
     {
         var shouldProcessGlamourerCommand = false;
 
-        SharedUserInterfaces.MediumText("Glamourer", glamourerAccessor.IsGlamourerInstalled ? ImGuiColors.ParsedOrange : ImGuiColors.DalamudGrey);
-        if (!glamourerAccessor.IsGlamourerInstalled) ImGui.BeginDisabled();
+        var isGlamourerInstalledSnapshot = new Snapshot<bool>(glamourerAccessor.IsGlamourerInstalled);
+        SharedUserInterfaces.MediumText("Glamourer", isGlamourerInstalledSnapshot.Value ? ImGuiColors.ParsedOrange : ImGuiColors.DalamudGrey);
+        if (!isGlamourerInstalledSnapshot.Value) ImGui.BeginDisabled();
 
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Crosshairs))
         {
@@ -328,10 +406,44 @@ public class SessionsTabExperimental : ITab
 
         if (shouldProcessGlamourerCommand)
         {
-
+            _ = ProcessGlamourerCommand();
         }
 
-        if (!glamourerAccessor.IsGlamourerInstalled) ImGui.EndDisabled();
+        if (!isGlamourerInstalledSnapshot.Value) ImGui.EndDisabled();
+    }
+
+    private async Task ProcessGlamourerCommand()
+    {
+        if (glamourerData.Length == 0)
+            return;
+
+        var glamourerApplyType = GlamourerAccessor.ConvertBoolsToApplyType(applyCustomization, applyEquipment);
+        var result = await networkProvider.IssueBecomeCommand(secretProvider.Secret, currentSession.TargetFriends, glamourerData, glamourerApplyType);
+        if (result.Success)
+        {
+            var sb = new StringBuilder();
+            sb.Append("You made ");
+            sb.Append(currentSession.TargetFriendsAsList());
+            switch (glamourerApplyType)
+            {
+                case GlamourerApplyType.EquipmentOnly:
+                    sb.Append(" wear this outfit: [");
+                    break;
+
+                case GlamourerApplyType.CustomizationOnly:
+                    sb.Append(" transform into this person: [");
+                    break;
+
+                case GlamourerApplyType.CustomizationAndEquipment:
+                    sb.Append(" transform into a perfect copy of this person: [");
+                    break;
+            }
+
+            sb.Append(glamourerData);
+            sb.Append("].");
+
+            AetherRemoteLogging.Log("Me", sb.ToString(), DateTime.Now, LogType.Sent);
+        }
     }
 
     private class Session(string id, string? name = null)
@@ -349,6 +461,11 @@ public class SessionsTabExperimental : ITab
         /// <summary>
         /// List of friends locked into the session
         /// </summary>
-        public List<Friend> FriendsInSession = [];
+        public List<Friend> TargetFriends = [];
+
+        public string TargetFriendsAsList()
+        {
+            return string.Join(", ", TargetFriends.Select(friend => friend.NoteOrFriendCode));
+        }
     }
 }

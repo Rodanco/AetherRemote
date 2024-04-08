@@ -10,7 +10,7 @@ namespace AetherRemoteClient.UI.Experimental.Tabs.Logs;
 
 public class LogsTabExperimental : ITab
 {
-    private readonly ThreadedFilter<LogEntry> threadedFilter = new(ActionHistory.Logs, FilterLogEntry);
+    private readonly ThreadedFilter<LogEntry> threadedFilter = new(AetherRemoteLogging.Logs, FilterLogEntry);
 
     private string searchLogTerm = string.Empty;
 

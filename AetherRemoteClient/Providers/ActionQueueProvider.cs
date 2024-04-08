@@ -150,7 +150,7 @@ public class ActionQueueProvider(IPluginLog logger, IClientState clientState, Ch
             sb.Append(Emote);
             sb.Append(" emote.");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
+            AetherRemoteLogging.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 
@@ -182,7 +182,7 @@ public class ActionQueueProvider(IPluginLog logger, IClientState clientState, Ch
             sb.Append(Data);
             sb.Append("].");
 
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
+            AetherRemoteLogging.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 
@@ -242,7 +242,7 @@ public class ActionQueueProvider(IPluginLog logger, IClientState clientState, Ch
                 sb.Append('.');
             }
             
-            ActionHistory.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
+            AetherRemoteLogging.Log(Sender, sb.ToString(), DateTime.Now, LogType.Recieved);
         }
     }
 

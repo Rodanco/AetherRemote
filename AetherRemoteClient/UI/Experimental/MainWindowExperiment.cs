@@ -40,7 +40,7 @@ public class MainWindowExperiment : Window
         [
             new DashboardTabExperimental(networkProvider),
             new FriendsTabExperimental(friendListProvider, networkProvider, secretProvider, logger),
-            new SessionsTabExperimental(friendListProvider, emoteProvider, glamourerAccessor, logger, targetManager),
+            new SessionsTabExperimental(friendListProvider, secretProvider, networkProvider, emoteProvider, glamourerAccessor, logger, targetManager),
             new LogsTabExperimental(),
             new SettingsTabExperimental(configuration),
         ];
