@@ -1,28 +1,33 @@
 using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
-using AetherRemoteCommon.Domain.Network.Base;
 
 namespace AetherRemoteCommon.Domain.Network.Become;
 
-public class BecomeCommandExecute : CommandExecute
+public class BecomeCommandExecute
 {
-    public string GlamourerData { get; set; }
-    public GlamourerApplyType GlamourerApplyType { get; set; }
+    public string SenderFriendCode;
+    public string GlamourerData;
+    public GlamourerApplyType GlamourerApplyType;
 
     public BecomeCommandExecute()
     {
+        SenderFriendCode = string.Empty;
         GlamourerData = string.Empty;
         GlamourerApplyType = GlamourerApplyType.CustomizationAndEquipment;
     }
 
-    public BecomeCommandExecute(string senderFriendCode, string glamourerData, 
-        GlamourerApplyType glamourerApplyType) : base(senderFriendCode)
+    public BecomeCommandExecute(string senderFriendCode, string glamourerData, GlamourerApplyType glamourerApplyType)
     {
+        SenderFriendCode = senderFriendCode;
         GlamourerData = glamourerData;
         GlamourerApplyType = glamourerApplyType;
     }
 
     public override string ToString()
     {
-        return $"BecomeCommandExecute=[SenderFriendCode={SenderFriendCode}, GlamourerData={GlamourerData}, GlamourerApplyType={GlamourerApplyType}]";
+        var sb = new AetherRemoteStringBuilder("BecomeCommandExecute");
+        sb.AddVariable("SenderFriendCode", SenderFriendCode);
+        sb.AddVariable("GlamourerData", GlamourerData);
+        sb.AddVariable("GlamourerApplyType", GlamourerApplyType);
+        return sb.ToString();
     }
 }

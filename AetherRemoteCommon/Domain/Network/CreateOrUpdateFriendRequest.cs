@@ -4,8 +4,8 @@ namespace AetherRemoteCommon.Domain.Network;
 
 public class CreateOrUpdateFriendRequest
 {
-    public string Secret { get; set; }
-    public Friend Friend { get; set; }
+    public string Secret;
+    public Friend Friend;
 
     public CreateOrUpdateFriendRequest()
     {
@@ -21,6 +21,9 @@ public class CreateOrUpdateFriendRequest
 
     public override string ToString()
     {
-        return $"CreateOrUpdateFriendRequest[Secret={Secret}, Friend={Friend}]";
+        var sb = new AetherRemoteStringBuilder("CreateOrUpdateFriendRequest");
+        sb.AddVariable("Secret", Secret);
+        sb.AddVariable("Friend", Friend);
+        return sb.ToString();
     }
 }

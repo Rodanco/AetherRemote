@@ -2,8 +2,8 @@ namespace AetherRemoteCommon.Domain.Network;
 
 public class DeleteFriendRequest
 {
-    public string Secret { get; set; }
-    public string FriendCode { get; set; }
+    public string Secret;
+    public string FriendCode;
 
     public DeleteFriendRequest()
     {
@@ -19,6 +19,9 @@ public class DeleteFriendRequest
 
     public override string ToString()
     {
-        return $"DeleteFriendRequest[Secret={Secret}, FriendCode={FriendCode}]";
+        var sb = new AetherRemoteStringBuilder("DeleteFriendRequest");
+        sb.AddVariable("Secret", Secret);
+        sb.AddVariable("FriendCode", FriendCode);
+        return sb.ToString();
     }
 }

@@ -1,24 +1,29 @@
 using AetherRemoteCommon.Domain.CommonChatMode;
-using AetherRemoteCommon.Domain.Network.Base;
 
 namespace AetherRemoteCommon.Domain.Network.Speak;
 
-public class SpeakCommandRequest : CommandRequest
+public class SpeakCommandRequest
 {
-    public string Message { get; set; }
-    public ChatMode Channel { get; set; }
-    public string? Extra { get; set; }
+    public string Secret;
+    public List<string> TargetFriendCodes;
+    public string Message;
+    public ChatMode Channel;
+    public string? Extra;
 
     public SpeakCommandRequest()
     {
+        Secret = string.Empty;
+        TargetFriendCodes = new();
         Message = string.Empty;
         Channel = ChatMode.Say;
         Extra = null;
     }
 
     public SpeakCommandRequest(string secret, List<string> targetFriendCodes,
-        string message, ChatMode channel, string? extra = null) : base(secret, targetFriendCodes)
+        string message, ChatMode channel, string? extra = null)
     {
+        Secret = secret;
+        TargetFriendCodes = targetFriendCodes;
         Message = message;
         Channel = channel;
         Extra = extra;
@@ -26,7 +31,12 @@ public class SpeakCommandRequest : CommandRequest
 
     public override string ToString()
     {
-        var friendCodes = string.Join(", ", TargetFriendCodes);
-        return $"SpeakCommandRequest[Secret={Secret}, TargetFriendCodes=[{friendCodes}], Message={Message}, Channel={Channel}, Extra={Extra}]";
+        var sb = new AetherRemoteStringBuilder("SpeakCommandRequest");
+        sb.AddVariable("Secret", Secret);
+        sb.AddVariable("TargetFriendCodes", TargetFriendCodes);
+        sb.AddVariable("Message", Message);
+        sb.AddVariable("Channel", Channel);
+        sb.AddVariable("Extra", Extra);
+        return sb.ToString();
     }
 }

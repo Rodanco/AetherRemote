@@ -4,13 +4,13 @@ namespace AetherRemoteCommon.Domain.Network;
 
 public class LoginRequest
 {
-    public string Secret { get; set; }
-    public List<Friend> FriendList { get; set; }
+    public string Secret;
+    public List<Friend> FriendList;
 
     public LoginRequest()
     {
         Secret = string.Empty;
-        FriendList = new List<Friend>();
+        FriendList = new();
     }
 
     public LoginRequest(string secret, List<Friend> friendList)
@@ -21,6 +21,9 @@ public class LoginRequest
 
     public override string ToString()
     {
-        return $"LoginRequest[Secret={Secret}, FriendList={FriendList}]";
+        var sb = new AetherRemoteStringBuilder("LoginRequest");
+        sb.AddVariable("Secret", Secret);
+        sb.AddVariable("FriendList", FriendList);
+        return sb.ToString();
     }
 }

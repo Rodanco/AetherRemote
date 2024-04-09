@@ -1,14 +1,27 @@
-using AetherRemoteCommon.Domain.Network.Base;
-
 namespace AetherRemoteCommon.Domain.Network.Become;
 
-public class BecomeCommandResponse : CommandResponse
+public class BecomeCommandResponse
 {
-    public BecomeCommandResponse() { }
-    public BecomeCommandResponse(bool success, string message) : base(success, message) { }
+    public bool Success;
+    public string Message;
+
+    public BecomeCommandResponse()
+    {
+        Success = false;
+        Message = string.Empty;
+    }
+
+    public BecomeCommandResponse(bool success, string message)
+    {
+        Success = success;
+        Message = message;
+    }
 
     public override string ToString()
     {
-        return $"BecomeCommandResponse[Success={Success}, Message={Message}]";
+        var sb = new AetherRemoteStringBuilder("BecomeCommandResponse");
+        sb.AddVariable("Success", Success);
+        sb.AddVariable("Message", Message);
+        return sb.ToString();
     }
 }

@@ -1,23 +1,26 @@
-using AetherRemoteCommon.Domain.Network.Base;
-
 namespace AetherRemoteCommon.Domain.Network.Emote;
 
-public class EmoteCommandExecute : CommandExecute
+public class EmoteCommandExecute
 {
-    public string Emote { get; set; }
-
+    public string SenderFriendCode;
+    public string Emote;
     public EmoteCommandExecute()
     {
+        SenderFriendCode = string.Empty;
         Emote = string.Empty;
     }
 
-    public EmoteCommandExecute(string senderFriendCode, string emote) : base(senderFriendCode)
+    public EmoteCommandExecute(string senderFriendCode, string emote)
     {
+        SenderFriendCode = senderFriendCode;
         Emote = emote;
     }
 
     public override string ToString()
     {
-        return $"EmoteCommandExecute=[SenderFriendCode={SenderFriendCode}, Emote={Emote}]";
+        var sb = new AetherRemoteStringBuilder("EmoteCommandExecute");
+        sb.AddVariable("SenderFriendCode", SenderFriendCode);
+        sb.AddVariable("Emote", Emote);
+        return sb.ToString();
     }
 }

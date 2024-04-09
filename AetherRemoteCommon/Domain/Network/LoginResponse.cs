@@ -1,26 +1,35 @@
-using AetherRemoteCommon.Domain.Network.Base;
-
 namespace AetherRemoteCommon.Domain.Network;
 
-public class LoginResponse : CommandResponse
+public class LoginResponse
 {
-    public string? FriendCode { get; set; }
-    public HashSet<string>? OnlineFriends { get; set; }
+    public bool Success;
+    public string Message;
+    public string? FriendCode;
+    public HashSet<string>? OnlineFriends;
 
     public LoginResponse()
     {
+        Success = false;
+        Message = string.Empty;
         FriendCode = null;
         OnlineFriends = null;
     }
 
-    public LoginResponse(bool success, string message, string? friendCode = null, HashSet<string>? onlineFriends = null) : base(success, message)
+    public LoginResponse(bool success, string message, string? friendCode = null, HashSet<string>? onlineFriends = null)
     {
+        Success = success;
+        Message = message;
         FriendCode = friendCode;
         OnlineFriends = onlineFriends;
     }
 
     public override string ToString()
     {
-        return $"LoginResponse[Success={Success}, Message={Message}, FriendCode={FriendCode}, OnlineFriends={OnlineFriends}]";
+        var sb = new AetherRemoteStringBuilder("LoginResponse");
+        sb.AddVariable("Success", Success);
+        sb.AddVariable("Message", Message);
+        sb.AddVariable("FriendCode", FriendCode);
+        sb.AddVariable("OnlineFriends", OnlineFriends);
+        return sb.ToString();
     }
 }

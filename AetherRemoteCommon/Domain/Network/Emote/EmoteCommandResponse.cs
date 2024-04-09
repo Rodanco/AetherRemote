@@ -1,14 +1,27 @@
-using AetherRemoteCommon.Domain.Network.Base;
-
 namespace AetherRemoteCommon.Domain.Network.Emote;
 
-public class EmoteCommandResponse : CommandResponse
+public class EmoteCommandResponse
 {
-    public EmoteCommandResponse() { }
-    public EmoteCommandResponse(bool success, string message) : base(success, message) { }
+    public bool Success;
+    public string Message;
+
+    public EmoteCommandResponse()
+    {
+        Success = false;
+        Message = string.Empty;
+    }
+
+    public EmoteCommandResponse(bool success, string message)
+    {
+        Success = success;
+        Message = message;
+    }
 
     public override string ToString()
     {
-        return $"EmoteCommandResponse[Success={Success}, Message={Message}]";
+        var sb = new AetherRemoteStringBuilder("EmoteCommandResponse");
+        sb.AddVariable("Success", Success);
+        sb.AddVariable("Message", Message);
+        return sb.ToString();
     }
 }
