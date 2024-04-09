@@ -1,4 +1,4 @@
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;

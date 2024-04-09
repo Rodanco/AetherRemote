@@ -1,4 +1,4 @@
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonFriend;
 
 namespace AetherRemoteServer.Domain;
 
@@ -7,13 +7,13 @@ public class User
 {
     public string Secret = string.Empty;
     public string FriendCode = string.Empty;
-    public List<CommonFriend> FriendList = new();
+    public List<Friend> FriendList = new();
 
     [NonSerialized]
     public string ConnectionId = string.Empty;
 
     public User() { }
-    public User(string secret, string friendCode, string connectionId, List<CommonFriend> friendList)
+    public User(string secret, string friendCode, string connectionId, List<Friend> friendList)
     {
         Secret = secret;
         FriendCode = friendCode;

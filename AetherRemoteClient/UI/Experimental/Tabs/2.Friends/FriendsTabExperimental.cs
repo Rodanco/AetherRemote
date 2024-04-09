@@ -1,7 +1,6 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using AetherRemoteCommon;
-using AetherRemoteCommon.Domain;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;

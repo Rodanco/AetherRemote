@@ -1,3 +1,4 @@
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using AetherRemoteCommon.Domain.Network.Base;
 
 namespace AetherRemoteCommon.Domain.Network.Become;

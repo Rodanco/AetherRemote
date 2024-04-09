@@ -1,7 +1,8 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Domain.Translators;
 using AetherRemoteCommon;
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonChatMode;
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using AetherRemoteCommon.Domain.Network;
 using AetherRemoteCommon.Domain.Network.Become;
 using AetherRemoteCommon.Domain.Network.Emote;

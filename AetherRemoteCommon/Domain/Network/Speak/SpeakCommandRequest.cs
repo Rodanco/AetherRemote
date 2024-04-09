@@ -1,3 +1,4 @@
+using AetherRemoteCommon.Domain.CommonChatMode;
 using AetherRemoteCommon.Domain.Network.Base;
 
 namespace AetherRemoteCommon.Domain.Network.Speak;

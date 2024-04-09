@@ -1,5 +1,5 @@
 using AetherRemoteCommon;
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonFriend;
 using AetherRemoteCommon.Domain.Network;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Diagnostics;
@@ -57,7 +57,7 @@ public class Tests
     [Test]
     public async Task TestCreateOrUpdateFriend()
     {
-        var request = new CreateOrUpdateFriendRequest(ValidSecret, new CommonFriend());
+        var request = new CreateOrUpdateFriendRequest(ValidSecret, new Friend());
         var response = await connection.InvokeAsync<CreateOrUpdateFriendResponse>(AetherRemoteConstants.ApiCreateOrUpdateFriend, request);
         Assert.That(response.Success, Is.True);
     }

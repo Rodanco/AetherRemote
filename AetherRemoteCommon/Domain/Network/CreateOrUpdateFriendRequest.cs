@@ -1,17 +1,19 @@
+using AetherRemoteCommon.Domain.CommonFriend;
+
 namespace AetherRemoteCommon.Domain.Network;
 
 public class CreateOrUpdateFriendRequest
 {
     public string Secret { get; set; }
-    public CommonFriend Friend { get; set; }
+    public Friend Friend { get; set; }
 
     public CreateOrUpdateFriendRequest()
     {
         Secret = string.Empty;
-        Friend = new CommonFriend();
+        Friend = new Friend();
     }
 
-    public CreateOrUpdateFriendRequest(string secret, CommonFriend friend)
+    public CreateOrUpdateFriendRequest(string secret, Friend friend)
     {
         Secret = secret;
         Friend = friend;

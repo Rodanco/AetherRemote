@@ -1,4 +1,4 @@
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonFriendPreferences;
 using System;
 
 namespace AetherRemoteClient.Domain;

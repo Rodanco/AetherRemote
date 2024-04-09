@@ -1,5 +1,7 @@
 using AetherRemoteCommon;
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonChatMode;
+using AetherRemoteCommon.Domain.CommonFriend;
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using AetherRemoteCommon.Domain.Network.Become;
 using AetherRemoteCommon.Domain.Network.Emote;
 using AetherRemoteCommon.Domain.Network.Speak;
@@ -29,12 +31,12 @@ public interface INetworkService
     /// <summary>
     /// Registers a user as online.
     /// </summary>
-    public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList);
+    public NetworkResult Register(string secret, string connectionId, List<Friend> friendList);
 
     /// <summary>
     /// Creates or updates a friend in user with provided secret's friend list.
     /// </summary>
-    public NetworkResult CreateOrUpdateFriend(string secret, CommonFriend friendToCreateOrUpdate);
+    public NetworkResult CreateOrUpdateFriend(string secret, Friend friendToCreateOrUpdate);
 
     /// <summary>
     /// Deletes a friend in user with provided secret's friend list.
@@ -80,7 +82,7 @@ public class NetworkService : INetworkService
         return onlineUsers.Select(user => user.FriendCode).ToHashSet();
     }
 
-    public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList)
+    public NetworkResult Register(string secret, string connectionId, List<Friend> friendList)
     {
         var friendCode = storageService.GetFriendCode(secret);
         if (friendCode == null)
@@ -96,7 +98,7 @@ public class NetworkService : INetworkService
         return new NetworkResult(true);
     }
 
-    public NetworkResult CreateOrUpdateFriend(string secret, CommonFriend friendToCreateOrUpdate)
+    public NetworkResult CreateOrUpdateFriend(string secret, Friend friendToCreateOrUpdate)
     {
         var user = onlineUsers.FirstOrDefault(u => u.Secret == secret);
         if (user == null)

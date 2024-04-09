@@ -1,4 +1,4 @@
-namespace AetherRemoteCommon.Domain;
+namespace AetherRemoteCommon.Domain.CommonChatMode;
 
 public enum ChatMode
 {

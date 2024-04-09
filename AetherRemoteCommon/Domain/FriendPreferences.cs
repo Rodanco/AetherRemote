@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace AetherRemoteCommon.Domain;
+namespace AetherRemoteCommon.Domain.CommonFriendPreferences;
 
 [Serializable]
 public class FriendPreferences

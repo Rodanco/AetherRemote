@@ -1,6 +1,7 @@
 using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Domain;
-using AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonChatMode;
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using Dalamud.Plugin.Services;
 using System;
 using System.Collections.Concurrent;

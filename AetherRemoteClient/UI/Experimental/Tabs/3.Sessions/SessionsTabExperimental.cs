@@ -1,19 +1,20 @@
+using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteCommon.Domain;
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain.CommonChatMode;
+using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using AetherRemoteClient.Accessors.Glamourer;
-using Dalamud.Game.ClientState.Objects;
-using System.Threading.Tasks;
-using System.Text;
 using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 

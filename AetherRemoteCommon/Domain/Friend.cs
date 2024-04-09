@@ -1,7 +1,9 @@
-namespace AetherRemoteCommon.Domain;
+using AetherRemoteCommon.Domain.CommonFriendPreferences;
+
+namespace AetherRemoteCommon.Domain.CommonFriend;
 
 [Serializable]
-public class CommonFriend
+public class Friend
 {
     /// <summary>
     /// Id of the friend (UserId)
@@ -21,14 +23,14 @@ public class CommonFriend
     /// </summary>
     public FriendPreferences Preferences { get; set; }
 
-    public CommonFriend()
+    public Friend()
     {
         FriendCode = string.Empty;
         Note = null;
         Preferences = new();
     }
 
-    public CommonFriend(string friendCode, string? note = null, FriendPreferences? preferences = null)
+    public Friend(string friendCode, string? note = null, FriendPreferences? preferences = null)
     {
         FriendCode = friendCode;
         Note = note;
