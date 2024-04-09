@@ -122,7 +122,7 @@ public class NetworkService : INetworkService
         var onlineFriend = TryGetOnlineUser(friendToCreateOrUpdate.FriendCode);
         if (onlineFriend != null)
         {
-            result.
+            
         }
 
         return result;
