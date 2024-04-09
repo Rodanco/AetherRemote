@@ -32,8 +32,8 @@ public class FriendListService
 
         if (Plugin.DeveloperMode)
         {
-            FriendList = new List<Friend>()
-            {
+            FriendList =
+            [
                 new Friend("Demo10") { Online = true },
                 new Friend("Demo20") { Online = true },
                 new Friend("Demo30") { Online = true },
@@ -42,7 +42,7 @@ public class FriendListService
                 new Friend("Demo33") { Online = true },
                 new Friend("Demo4") { Online = false },
                 new Friend("Demo5") { Online = false },
-            };
+            ];
         }
         else
         {

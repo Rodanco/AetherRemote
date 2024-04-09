@@ -4,6 +4,9 @@ namespace AetherRemoteCommon.Domain.Network;
 
 public class CreateOrUpdateFriendResponse : CommandResponse
 {
+
+    // TODO: Provide online status when changing something about a friend
+
     public CreateOrUpdateFriendResponse() { }
     public CreateOrUpdateFriendResponse(bool success, string message) : base(success, message) { }
 

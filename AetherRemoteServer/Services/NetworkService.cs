@@ -22,17 +22,22 @@ public interface INetworkService
     public string? GetFriendCode(string secret);
 
     /// <summary>
-    /// Registers a user as online.<br/>
+    /// Gets the friend codes of all online users.
+    /// </summary>
+    public HashSet<string> GetOnlineUserFriendCodes();
+
+    /// <summary>
+    /// Registers a user as online.
     /// </summary>
     public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList);
 
     /// <summary>
-    /// Creates or updates a friend in user with provided secret's friend list. <br/>
+    /// Creates or updates a friend in user with provided secret's friend list.
     /// </summary>
     public NetworkResult CreateOrUpdateFriend(string secret, CommonFriend friendToCreateOrUpdate);
 
     /// <summary>
-    /// Deletes a friend in user with provided secret's friend list. <br/>
+    /// Deletes a friend in user with provided secret's friend list.
     /// </summary>
     public NetworkResult DeleteFriend(string secret, string friendCodeToDelete);
 
@@ -68,6 +73,11 @@ public class NetworkService : INetworkService
     public string? GetFriendCode(string secret)
     {
         return storageService.GetFriendCode(secret);
+    }
+
+    public HashSet<string> GetOnlineUserFriendCodes()
+    {
+        return onlineUsers.Select(user => user.FriendCode).ToHashSet();
     }
 
     public NetworkResult Register(string secret, string connectionId, List<CommonFriend> friendList)
@@ -107,6 +117,12 @@ public class NetworkService : INetworkService
         {
             user.FriendList[index] = friendToCreateOrUpdate;
             result.Message = "Update successful";
+        }
+
+        var onlineFriend = TryGetOnlineUser(friendToCreateOrUpdate.FriendCode);
+        if (onlineFriend != null)
+        {
+            result.
         }
 
         return result;

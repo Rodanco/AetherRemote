@@ -69,6 +69,7 @@ public class NetworkProvider(IPluginLog logger)
         return AsyncResult.Successful;
     }
 
+    // TODO: Clarify what `friendList` is, and where it comes from. Even explore the possibility of passing the friend list provider into this instance.
     public async Task<AsyncResult> Login(string secret, List<Friend> friendList)
     {
         if (Plugin.DeveloperMode)
@@ -92,6 +93,15 @@ public class NetworkProvider(IPluginLog logger)
                 }
 
                 FriendCode = response.FriendCode;
+
+                // Set online status of friends
+                // This is slightly hacky, as this friendList is assumed to always be the same
+                // Instance of friend list from FriendListProvider
+                foreach (var friend in friendList)
+                {
+                    // OnlineFriends will always have a value when returning a success
+                    friend.Online = response.OnlineFriends?.Contains(friend.FriendCode) ?? false;
+                }
             }
             else
             {

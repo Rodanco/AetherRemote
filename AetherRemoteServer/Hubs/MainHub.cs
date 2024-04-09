@@ -17,15 +17,23 @@ public class MainHub : Hub
         if (friendCode == null)
             return new LoginResponse(false, "Invalid secret");
 
-        var result = networkService.Register(request.Secret, Context.ConnectionId, request.FriendList);
-        return new LoginResponse(result.Success, "Successfully logged in", friendCode);
+        var loginResponse = new LoginResponse();
+
+        var registerResult = networkService.Register(request.Secret, Context.ConnectionId, request.FriendList);
+        if (registerResult.Success)
+            loginResponse.OnlineFriends = networkService.GetOnlineUserFriendCodes();
+        else
+            loginResponse.Message = registerResult.Message;
+
+        loginResponse.Success = registerResult.Success;
+        loginResponse.FriendCode = friendCode;
+
+        return loginResponse;
     }
 
     [HubMethodName(AetherRemoteConstants.ApiCreateOrUpdateFriend)]
     public CreateOrUpdateFriendResponse CreateOrUpdateFriend(CreateOrUpdateFriendRequest request, INetworkService networkService)
     {
-        Console.WriteLine($"Got request {request}");
-
         var isValid = networkService.IsValidSecret(request.Secret);
         if (!isValid)
             return new CreateOrUpdateFriendResponse(false, "Invalid secret");

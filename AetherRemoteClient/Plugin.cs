@@ -123,7 +123,7 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface.UiBuilder.Draw += DrawUI;
         pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-        mainWindow.IsOpen = true;
+        //mainWindow.IsOpen = true;
         mainWindowExperiment.IsOpen = true;
     }
 
@@ -141,7 +141,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        mainWindow.IsOpen = true;
+        //mainWindow.IsOpen = true;
         mainWindowExperiment.IsOpen = true;
     }
 

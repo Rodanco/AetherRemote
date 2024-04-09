@@ -30,7 +30,7 @@ public class Friend(string id, string? note = null, FriendPreferences? preferenc
     /// Is this friend currently connected to the server
     /// </summary>
     [NonSerialized]
-    public bool Online = true;
+    public bool Online = false;
 
     /// <summary>
     /// Is this friend selected in the dashboard for controlling

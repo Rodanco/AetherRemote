@@ -91,7 +91,7 @@ public class SessionsTabExperimental : ITab
 
         if (ImGui.BeginTabItem("Sessions"))
         {
-            var sessionListArea = new Vector2(BigButtonSize.X + (style.FramePadding.X * 2), 0);
+            var sessionListArea = new Vector2(BigButtonSize.X + (style.WindowPadding.X * 2), 0);
             if (ImGui.BeginChild("SessionListArea", sessionListArea, true))
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
