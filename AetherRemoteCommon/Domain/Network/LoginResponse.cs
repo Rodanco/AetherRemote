@@ -4,14 +4,14 @@ public class LoginResponse
 {
     public bool Success;
     public string Message;
-    public string? FriendCode;
+    public string? RequesterFriendCode;
     public HashSet<string>? OnlineFriends;
 
     public LoginResponse()
     {
         Success = false;
         Message = string.Empty;
-        FriendCode = null;
+        RequesterFriendCode = null;
         OnlineFriends = null;
     }
 
@@ -19,7 +19,7 @@ public class LoginResponse
     {
         Success = success;
         Message = message;
-        FriendCode = friendCode;
+        RequesterFriendCode = friendCode;
         OnlineFriends = onlineFriends;
     }
 
@@ -28,7 +28,7 @@ public class LoginResponse
         var sb = new AetherRemoteStringBuilder("LoginResponse");
         sb.AddVariable("Success", Success);
         sb.AddVariable("Message", Message);
-        sb.AddVariable("FriendCode", FriendCode);
+        sb.AddVariable("FriendCode", RequesterFriendCode);
         sb.AddVariable("OnlineFriends", OnlineFriends);
         return sb.ToString();
     }

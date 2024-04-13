@@ -7,149 +7,87 @@ using AetherRemoteCommon.Domain.Network.Emote;
 using AetherRemoteCommon.Domain.Network.Speak;
 using AetherRemoteServer.Domain;
 using Microsoft.AspNetCore.SignalR;
+using System.Net.Sockets;
+using System.Text;
 
 namespace AetherRemoteServer.Services;
 
-public interface INetworkService
-{
-    /// <summary>
-    /// Wrapper for <see cref="StorageService.IsValidSecret(string)"/> <br/>
-    /// </summary>
-    public bool IsValidSecret(string secret);
-
-    /// <summary>
-    /// Wrapper for <see cref="StorageService.GetFriendCode(string)"/> <br/>
-    /// Returns a friend code for associated secret or null if not found
-    /// </summary>
-    public string? GetFriendCode(string secret);
-
-    /// <summary>
-    /// Gets the friend codes of all online users.
-    /// </summary>
-    public HashSet<string> GetOnlineUserFriendCodes();
-
-    /// <summary>
-    /// Registers a user as online.
-    /// </summary>
-    public NetworkResult Register(string secret, string connectionId, List<Friend> friendList);
-
-    /// <summary>
-    /// Creates or updates a friend in user with provided secret's friend list.
-    /// </summary>
-    public NetworkResult CreateOrUpdateFriend(string secret, Friend friendToCreateOrUpdate);
-
-    /// <summary>
-    /// Deletes a friend in user with provided secret's friend list.
-    /// </summary>
-    public NetworkResult DeleteFriend(string secret, string friendCodeToDelete);
-
-    /// <summary>
-    /// Issues a speak command to a list of target friend codes
-    /// </summary>
-    public NetworkResult IssueSpeakCommand(string secret, ChatMode channel, string message,
-        string? extra, List<string> targetFriendCodes, IHubCallerClients clients);
-
-    /// <summary>
-    /// Issues an emote command to a list of target friend codes
-    /// </summary>
-    public NetworkResult IssueEmoteCommand(string secret, string emote, List<string> targetFriendCodes,
-        IHubCallerClients clients);
-
-    /// <summary>
-    /// Issues a become command to a list of target friend codes
-    /// </summary>
-    public NetworkResult IssueBecomeCommand(string secret, string glamourerData, GlamourerApplyType glamourerApplyType,
-        List<string> targetFriendCodes, IHubCallerClients clients);
-}
-
 public class NetworkService : INetworkService
 {
+    private static readonly bool EnableVerboseLogging = true;
+
     private readonly StorageService storageService = new();
     private readonly List<User> onlineUsers = new();
 
-    public bool IsValidSecret(string secret)
+    public string? TryGetRequesterFriendCode(string requesterSecret)
     {
-        return GetFriendCode(secret) != null;
+        return storageService.TryGetFriendCode(requesterSecret);
     }
 
-    public string? GetFriendCode(string secret)
+    public User? TryGetOnlineUser(string friendCode)
     {
-        return storageService.GetFriendCode(secret);
+        return onlineUsers.FirstOrDefault(user => user.FriendCode == friendCode);
     }
 
-    public HashSet<string> GetOnlineUserFriendCodes()
+    public GenericResult Register(string secret, string connectionId, List<Friend> friendList)
     {
-        return onlineUsers.Select(user => user.FriendCode).ToHashSet();
-    }
-
-    public NetworkResult Register(string secret, string connectionId, List<Friend> friendList)
-    {
-        var friendCode = storageService.GetFriendCode(secret);
+        var friendCode = storageService.TryGetFriendCode(secret);
         if (friendCode == null)
-            return new NetworkResult(false, $"Could not find friend code for provided secret: {secret}");
-
-        foreach (var user in onlineUsers)
         {
-            if (user.Secret == secret)
-                return new NetworkResult(false, $"Already registered secret: {secret}");
+            var logMessage = $"Provided secret {secret} does not match any records in the database";
+
+            if (EnableVerboseLogging)
+                Log(logMessage);
+
+            return new GenericResult(false, logMessage);
+        }
+
+        var userAlreadyRegistered = onlineUsers.Any(user =>user.Secret == secret);
+        if (userAlreadyRegistered)
+        {
+            var logMessage = $"Already registered secret {secret}";
+
+            if (EnableVerboseLogging)
+                Log(logMessage);
+
+            return new GenericResult(false, logMessage);
         }
 
         onlineUsers.Add(new User(secret, friendCode, connectionId, friendList));
-        return new NetworkResult(true);
+        return new GenericResult(true);
     }
 
-    public NetworkResult CreateOrUpdateFriend(string secret, Friend friendToCreateOrUpdate)
+    public GenericResult CreateOrUpdateFriend(User requesterUser, Friend friendToCreateOrUpdate)
     {
-        var user = onlineUsers.FirstOrDefault(u => u.Secret == secret);
-        if (user == null)
-            return new NetworkResult(false, $"Could not find online user who matches provided secret: {secret}");
-
         var validFriendCode = storageService.IsValidFriendCode(friendToCreateOrUpdate.FriendCode);
         if (validFriendCode == false)
-            return new NetworkResult(false, $"FriendCode does not exist: {friendToCreateOrUpdate.FriendCode}");
+            return new GenericResult(false, $"FriendCode does not exist: {friendToCreateOrUpdate.FriendCode}");
 
-        var result = new NetworkResult(true);
-        var index = user.FriendList.FindIndex(f => f.FriendCode == friendToCreateOrUpdate.FriendCode);
+        var index = requesterUser.FriendList.FindIndex(friend => friend.FriendCode == friendToCreateOrUpdate.FriendCode);
         if (index < 0)
         {
-            user.FriendList.Add(friendToCreateOrUpdate);
-            result.Message = "Create successful";
+            requesterUser.FriendList.Add(friendToCreateOrUpdate);
         }
         else
         {
-            user.FriendList[index] = friendToCreateOrUpdate;
-            result.Message = "Update successful";
+            requesterUser.FriendList[index] = friendToCreateOrUpdate;
         }
 
-        var onlineFriend = TryGetOnlineUser(friendToCreateOrUpdate.FriendCode);
-        if (onlineFriend != null)
-        {
-            
-        }
-
-        return result;
+        return new GenericResult(true);
     }
 
-    public NetworkResult DeleteFriend(string secret, string friendCodeToDelete)
+    public GenericResult DeleteFriend(User requesterUser, string friendCodeToDelete)
     {
-        var user = onlineUsers.FirstOrDefault(u => u.Secret == secret);
-        if (user == null)
-            return new NetworkResult(false, $"Could not find online user who matches provided secret: {secret}");
-
-        var index = user.FriendList.FindIndex(f => f.FriendCode == friendCodeToDelete);
+        var index = requesterUser.FriendList.FindIndex(f => f.FriendCode == friendCodeToDelete);
         if (index > -1)
-            user.FriendList.RemoveAt(index);
+            requesterUser.FriendList.RemoveAt(index);
 
-        return new NetworkResult(true);
+        return new GenericResult(true);
     }
 
-    public NetworkResult IssueSpeakCommand(string secret, ChatMode channel, string message,
+    public GenericResult IssueSpeakCommand(string issuerFriendCode, ChatMode channel, string message,
         string? extra, List<string> targetFriendCodes, IHubCallerClients clients)
     {
-        var issuerFriendCode = storageService.GetFriendCode(secret);
-        if (issuerFriendCode == null)
-            return new NetworkResult(false, $"Could not find friend code for provided secret: {secret}");
-
         foreach (var targetFriendCode in targetFriendCodes)
         {
             var targetUser = TryGetOnlineUser(targetFriendCode);
@@ -167,20 +105,16 @@ public class NetworkService : INetworkService
             }
             catch (Exception ex)
             {
-                return new NetworkResult(false, ex.Message);
+                return new GenericResult(false, ex.Message);
             }
         }
 
-        return new NetworkResult(true);
+        return new GenericResult(true);
     }
 
-    public NetworkResult IssueEmoteCommand(string secret, string emote, List<string> targetFriendCodes, 
+    public GenericResult IssueEmoteCommand(string issuerFriendCode, string emote, List<string> targetFriendCodes, 
         IHubCallerClients clients)
     {
-        var issuerFriendCode = storageService.GetFriendCode(secret);
-        if (issuerFriendCode == null)
-            return new NetworkResult(false, $"Could not find friend code for provided secret: {secret}");
-
         foreach (var targetFriendCode in targetFriendCodes)
         {
             var targetUser = TryGetOnlineUser(targetFriendCode);
@@ -204,22 +138,16 @@ public class NetworkService : INetworkService
             }
             catch (Exception ex)
             {
-                return new NetworkResult(false, ex.Message);
+                return new GenericResult(false, ex.Message);
             }
         }
 
-        return new NetworkResult(true);
+        return new GenericResult(true);
     }
 
-    public NetworkResult IssueBecomeCommand(string secret, string glamourerData, GlamourerApplyType glamourerApplyType,
+    public GenericResult IssueBecomeCommand(string issuerFriendCode, string glamourerData, GlamourerApplyType glamourerApplyType,
         List<string> targetFriendCodes, IHubCallerClients clients)
     {
-        Console.WriteLine($"Hey look, a become command!");
-
-        var issuerFriendCode = storageService.GetFriendCode(secret);
-        if (issuerFriendCode == null)
-            return new NetworkResult(false, $"Could not find friend code for provided secret: {secret}");
-
         foreach (var targetFriendCode in targetFriendCodes)
         {
             var targetUser = TryGetOnlineUser(targetFriendCode);
@@ -237,15 +165,18 @@ public class NetworkService : INetworkService
             }
             catch (Exception ex)
             {
-                return new NetworkResult(false, ex.Message);
+                return new GenericResult(false, ex.Message);
             }
         }
 
-        return new NetworkResult(true);
+        return new GenericResult(true);
     }
 
-    private User? TryGetOnlineUser(string friendCode)
+    private static void Log(string message)
     {
-        return onlineUsers.FirstOrDefault(user => user.FriendCode == friendCode);
+        var sb = new StringBuilder();
+        sb.AppendLine("[NetworkService] ");
+        sb.AppendLine(message);
+        Console.WriteLine(sb.ToString());
     }
 }

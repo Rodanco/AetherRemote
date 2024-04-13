@@ -87,13 +87,13 @@ public class NetworkProvider(IPluginLog logger)
 
             if (response.Success)
             {
-                if (response.FriendCode == null)
+                if (response.RequesterFriendCode == null)
                 {
                     logger.Verbose("Login attempt was successful but no friend code was returned");
                     return AsyncResult.Failure;
                 }
 
-                FriendCode = response.FriendCode;
+                FriendCode = response.RequesterFriendCode;
 
                 // Set online status of friends
                 // This is slightly hacky, as this friendList is assumed to always be the same

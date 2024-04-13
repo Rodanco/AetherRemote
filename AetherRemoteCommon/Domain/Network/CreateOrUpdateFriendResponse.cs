@@ -4,18 +4,20 @@ public class CreateOrUpdateFriendResponse
 {
     public bool Success;
     public string Message;
-    // TODO: Provide online status when changing something about a friend
+    public bool Online;
 
     public CreateOrUpdateFriendResponse()
     {
         Success = false;
         Message = string.Empty;
+        Online = false;
     }
 
-    public CreateOrUpdateFriendResponse(bool success, string message)
+    public CreateOrUpdateFriendResponse(bool success, string message, bool online = false)
     {
         Success = success;
         Message = message;
+        Online = online;
     }
 
     public override string ToString()
@@ -23,6 +25,7 @@ public class CreateOrUpdateFriendResponse
         var sb = new AetherRemoteStringBuilder("BecomeCommandResponse");
         sb.AddVariable("Success", Success);
         sb.AddVariable("Message", Message);
+        sb.AddVariable("Online", Online);
         return sb.ToString();
     }
 }
