@@ -61,9 +61,6 @@ public class SaveFile<T>
         {
             await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(save, serializationOptions));
         }
-        catch
-        {
-            // TODO: Logging
-        }
+        catch { }
     }
 }

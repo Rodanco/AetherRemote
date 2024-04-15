@@ -18,21 +18,31 @@ using System.Threading.Tasks;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 
-public class SessionsTabExperimental : ITab
+public class SessionsTabExperimental(
+    FriendListProvider friendListProvider,
+    SecretProvider secretProvider,
+    NetworkProvider networkProvider,
+    EmoteProvider emoteProvider,
+    GlamourerAccessor glamourerAccessor,
+    IPluginLog logger,
+    ITargetManager targetManager) : ITab
 {
     // Injected
-    private readonly FriendListProvider friendListProvider;
-    private readonly SecretProvider secretProvider;
-    private readonly EmoteProvider emoteProvider;
-    private readonly NetworkProvider networkProvider;
-    private readonly GlamourerAccessor glamourerAccessor;
-    private readonly IPluginLog logger;
-    private readonly ITargetManager targetManager;
+    private readonly FriendListProvider friendListProvider = friendListProvider;
+    private readonly SecretProvider secretProvider = secretProvider;
+    private readonly EmoteProvider emoteProvider = emoteProvider;
+    private readonly NetworkProvider networkProvider = networkProvider;
+    private readonly GlamourerAccessor glamourerAccessor = glamourerAccessor;
+    private readonly IPluginLog logger = logger;
+    private readonly ITargetManager targetManager = targetManager;
 
-    private readonly Random random;
-    private readonly List<Session> sessions;
-    private readonly ThreadedFilter<string> emoteFilter;
-    private Session currentSession;
+    private readonly Random random = new();
+    private readonly List<Session> sessions = [];
+    private readonly ThreadedFilter<string> emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) =>
+        {
+            return emote.Contains(searchTerm);
+        });
+    private Session? currentSession = null;
 
     private ChatMode chatMode = ChatMode.Say;
     private int shellNumber = 1;
@@ -49,149 +59,134 @@ public class SessionsTabExperimental : ITab
     private static Vector2 BigButtonSize = new(40, 40);
     private static readonly int LinkshellSelectorWidth = 42;
 
-    public SessionsTabExperimental(
-        FriendListProvider friendListProvider,
-        SecretProvider secretProvider,
-        NetworkProvider networkProvider,
-        EmoteProvider emoteProvider,
-        GlamourerAccessor glamourerAccessor,
-        IPluginLog logger,
-        ITargetManager targetManager)
-    {
-        this.friendListProvider = friendListProvider;
-        this.secretProvider = secretProvider;
-        this.networkProvider = networkProvider;
-        this.emoteProvider = emoteProvider;
-        this.glamourerAccessor = glamourerAccessor;
-        this.logger = logger;
-        this.targetManager = targetManager;
-
-        random = new();
-
-        sessions =
-        [
-            new(random.Next().ToString()),
-            new(random.Next().ToString())
-        ];
-
-        currentSession = sessions[0];
-
-        currentSession.TargetFriends.Add(new Friend("Joe"));
-        currentSession.TargetFriends.Add(new Friend("Momma"));
-        currentSession.TargetFriends.Add(new Friend("Sugma"));
-
-        emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) => 
-        {
-            return emote.Contains(searchTerm);
-        });
-    }
-
     public void Draw()
     {
-        var style = ImGui.GetStyle();
-
         if (ImGui.BeginTabItem("Sessions"))
         {
-            var sessionListArea = new Vector2(BigButtonSize.X + (style.WindowPadding.X * 2), 0);
-            if (ImGui.BeginChild("SessionListArea", sessionListArea, true))
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
-
-                if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Plus, BigButtonSize))
-                {
-                    sessions.Add(new Session(random.Next().ToString()));
-                    // TODO: Assign more things, like a color, and a random icon
-                }
-
-                foreach (var session in sessions)
-                {
-                    if (SharedUserInterfaces.IconButton(FontAwesomeIcon.User, BigButtonSize, session.Id))
-                    {
-                        currentSession = session;
-                    }
-
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.BeginTooltip();
-                        ImGui.Text(session.Name);
-                        ImGui.EndTooltip();
-                    }
-                }
-                
-                ImGui.PopStyleVar();
-
-                ImGui.EndChild();
-            }
+            // Draw Session List
+            DrawSessionList();
 
             ImGui.SameLine();
 
-            var showFriendsInSessionSnapshot = new Snapshot<bool>(showFriendsInSession);
-            var sessionAreaSize = showFriendsInSessionSnapshot.Value ? Vector2.Zero : new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0);
-            if (ImGui.BeginChild("SessionArea", sessionAreaSize, true))
-            {
-                SharedUserInterfaces.BigTextCentered(currentSession.Name);
+            // Draw Session Area
+            DrawSessionArea();
 
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ButtonSize.X - style.ItemSpacing.X);
-                var icon = showFriendsInSessionSnapshot.Value ? FontAwesomeIcon.UserFriends : FontAwesomeIcon.ArrowRight;
-                if (SharedUserInterfaces.IconButton(icon, ButtonSize))
+            ImGui.EndTabItem();
+        }
+    }
+
+    private void DrawSessionList()
+    {
+        var style = ImGui.GetStyle();
+        var sessionListArea = new Vector2(BigButtonSize.X + (style.WindowPadding.X * 2), 0);
+        if (ImGui.BeginChild("SessionListArea", sessionListArea, true, ImGuiWindowFlags.NoScrollbar))
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
+
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Plus, BigButtonSize))
+            {
+                var session = new Session(random.Next().ToString());
+                currentSession = session;
+                sessions.Add(session);
+            }
+
+            foreach (var session in sessions)
+            {
+                if (SharedUserInterfaces.IconButton(session.Icon, BigButtonSize, session.Id))
                 {
-                    showFriendsInSession = !showFriendsInSession;
+                    currentSession = session;
                 }
+
                 if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
-                    var text = showFriendsInSessionSnapshot.Value ? "Expand session list" : "Collapse session list";
-                    ImGui.Text(text);
+                    ImGui.Text(session.Name);
                     ImGui.EndTooltip();
                 }
+            }
 
-                DrawSpeakSection();
+            ImGui.PopStyleVar();
 
-                DrawEmoteSection();
+            ImGui.EndChild();
+        }
+    }
 
-                DrawGlamourerSection();
+    private void DrawSessionArea()
+    {
+        var style = ImGui.GetStyle();
+        var showFriendsInSessionSnapshot = new Snapshot<bool>(showFriendsInSession);
+        var sessionAreaSize = showFriendsInSessionSnapshot.Value ? Vector2.Zero : new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0);
+        if (ImGui.BeginChild("SessionArea", sessionAreaSize, true))
+        {
+            if (currentSession == null)
+            {
+                SharedUserInterfaces.BigTextCentered("Create a session to begin");
+
+                ImGui.EndChild();
+                return;
+            }
+
+            SharedUserInterfaces.BigTextCentered(currentSession.Name);
+
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ButtonSize.X - style.ItemSpacing.X);
+            var icon = showFriendsInSessionSnapshot.Value ? FontAwesomeIcon.UserFriends : FontAwesomeIcon.ArrowRight;
+            if (SharedUserInterfaces.IconButton(icon, ButtonSize))
+            {
+                showFriendsInSession = !showFriendsInSession;
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                var text = showFriendsInSessionSnapshot.Value ? "Expand session list" : "Collapse session list";
+                ImGui.Text(text);
+                ImGui.EndTooltip();
+            }
+
+            DrawSpeakSection();
+
+            DrawEmoteSection();
+
+            DrawGlamourerSection();
+
+            ImGui.EndChild();
+        }
+
+        ImGui.SameLine();
+
+        if (!showFriendsInSessionSnapshot.Value)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+
+            if (ImGui.BeginChild("SessionFriendsArea", Vector2.Zero, true))
+            {
+                if (ImGui.BeginTable("FriendListTable", 1, ImGuiTableFlags.Borders))
+                {
+                    // TODO: Remove ! operator
+                    foreach (var friend in currentSession!.TargetFriends)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+
+                        SharedUserInterfaces.Icon(FontAwesomeIcon.User);
+                        ImGui.SameLine();
+
+                        // TODO: Find a soft color that works nicely
+                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
+                        if (ImGui.Selectable($"{friend.NoteOrFriendCode}", false, ImGuiSelectableFlags.SpanAllColumns))
+                        {
+
+                        }
+                        ImGui.PopStyleColor();
+                    }
+
+                    ImGui.EndTable();
+                }
 
                 ImGui.EndChild();
             }
 
-            ImGui.SameLine();
-
-            if (!showFriendsInSessionSnapshot.Value)
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-
-                if (ImGui.BeginChild("SessionFriendsArea", Vector2.Zero, true))
-                {
-                    if (ImGui.BeginTable("FriendListTable", 1, ImGuiTableFlags.Borders))
-                    {
-                        foreach (var friend in currentSession.TargetFriends)
-                        {
-                            ImGui.TableNextRow();
-                            ImGui.TableSetColumnIndex(0);
-
-                            SharedUserInterfaces.Icon(FontAwesomeIcon.User);
-                            ImGui.SameLine();
-
-                            // TODO: Find a soft color that works nicely
-                            ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
-                            if (ImGui.Selectable($"{friend.NoteOrFriendCode}", false, ImGuiSelectableFlags.SpanAllColumns))
-                            {
-                                
-                            }
-                            ImGui.PopStyleColor();
-                        }
-
-                        ImGui.EndTable();
-                    }
-
-                    ImGui.EndChild();
-                }
-
-                ImGui.PopStyleVar();
-            }
-
-            ImGui.EndTabItem();
+            ImGui.PopStyleVar();
         }
     }
 
@@ -282,7 +277,8 @@ public class SessionsTabExperimental : ITab
                 extra = tellTarget;
         }
 
-        var result = await networkProvider.IssueSpeakCommand(secretProvider.Secret, currentSession.TargetFriends, message, chatMode, extra);
+        // TODO: Remove ! operator
+        var result = await networkProvider.IssueSpeakCommand(secretProvider.Secret, currentSession!.TargetFriends, message, chatMode, extra);
         if (result.Success)
         {
             var sb = new StringBuilder();
@@ -341,7 +337,8 @@ public class SessionsTabExperimental : ITab
         if (validEmote == false)
             return;
 
-        var result = await networkProvider.IssueEmoteCommand(secretProvider.Secret, currentSession.TargetFriends, emote);
+        // TODO: Remove ! operator
+        var result = await networkProvider.IssueEmoteCommand(secretProvider.Secret, currentSession!.TargetFriends, emote);
         if (result.Success)
         {
             var sb = new StringBuilder();
@@ -419,7 +416,9 @@ public class SessionsTabExperimental : ITab
             return;
 
         var glamourerApplyType = GlamourerAccessor.ConvertBoolsToApplyType(applyCustomization, applyEquipment);
-        var result = await networkProvider.IssueBecomeCommand(secretProvider.Secret, currentSession.TargetFriends, glamourerData, glamourerApplyType);
+
+        // TODO: Remove ! operator
+        var result = await networkProvider.IssueBecomeCommand(secretProvider.Secret, currentSession!.TargetFriends, glamourerData, glamourerApplyType);
         if (result.Success)
         {
             var sb = new StringBuilder();
@@ -447,7 +446,7 @@ public class SessionsTabExperimental : ITab
         }
     }
 
-    private class Session(string id, string? name = null)
+    private class Session(string id, string? name = null, FontAwesomeIcon? icon = null, Vector4? color = null)
     {
         /// <summary>
         /// Session Id
@@ -460,9 +459,39 @@ public class SessionsTabExperimental : ITab
         public string Name = name ?? id;
 
         /// <summary>
+        /// The icon for the session
+        /// </summary>
+        // TODO: Calculate IconPool before hand, and pass in the result to avoid constant Random instantiation
+        public FontAwesomeIcon Icon = icon ?? IconPool[new Random().Next(IconPool.Count)];
+
+        /// <summary>
+        /// The color of the icon
+        /// </summary>         
+        // TODO: Calculate ColorPool before hand, and pass in the result to avoid constant Random instantiation
+        public Vector4 Color = color ?? ColorPool[new Random().Next(ColorPool.Count)];
+
+        /// <summary>
         /// List of friends locked into the session
         /// </summary>
         public List<Friend> TargetFriends = [];
+
+        // TODO: Move this out of session class
+        public static readonly List<FontAwesomeIcon> IconPool = [
+            FontAwesomeIcon.Feather,
+            FontAwesomeIcon.Heart,
+            FontAwesomeIcon.Handcuffs,
+            FontAwesomeIcon.Ankh,
+            FontAwesomeIcon.Coffee,
+            FontAwesomeIcon.Dove,
+            FontAwesomeIcon.Moon,
+            FontAwesomeIcon.IceCream,
+            FontAwesomeIcon.Socks
+            ];
+
+        // TODO: Move this out of session class
+        public static readonly List<Vector4> ColorPool = [
+            new Vector4(1, 1, 1, 1)
+            ];
 
         public string TargetFriendsAsList()
         {
