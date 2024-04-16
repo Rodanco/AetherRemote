@@ -13,6 +13,9 @@ namespace AetherRemoteClient.UI;
 
 public class SharedUserInterfaces
 {
+    public static Vector4 HoveredColorTheme = new Vector4(100f/255f,30f/255f,30f/255f,1);
+    public static Vector4 SelectedColorTheme = new Vector4(160/255f,45/255f,45/255f,1);
+
     public static readonly ImGuiWindowFlags PopupWindowFlags =
         ImGuiWindowFlags.NoTitleBar |
         ImGuiWindowFlags.NoMove |

@@ -141,13 +141,13 @@ public class FriendsTabExperimental(FriendListProvider friendListProvider, Netwo
                 SharedUserInterfaces.Icon(FontAwesomeIcon.User);
                 ImGui.SameLine();
 
-                // TODO: Find a soft color that works nicely
-                ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
+                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, SharedUserInterfaces.HoveredColorTheme);
+                ImGui.PushStyleColor(ImGuiCol.Header, SharedUserInterfaces.SelectedColorTheme);
                 if (ImGui.Selectable($"{friend.NoteOrFriendCode}", friendBeingEditted == friend, ImGuiSelectableFlags.SpanAllColumns))
                 {
                     EditFriend(friend);
                 }
-                ImGui.PopStyleColor(1);
+                ImGui.PopStyleColor(2);
             }
 
             ImGui.EndTable();
