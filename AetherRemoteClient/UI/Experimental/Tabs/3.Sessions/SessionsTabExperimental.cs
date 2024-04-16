@@ -96,11 +96,28 @@ public class SessionsTabExperimental(
                 SetSession(session);
             }
 
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, SharedUserInterfaces.HoveredColorTheme);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, SharedUserInterfaces.SelectedColorTheme);
+
             foreach (var session in sessions)
             {
+                var currentSessionSnapshot = new Snapshot<Session>(currentSession?? new Session("tempSession",FontAwesomeIcon.Moon,ImGuiColors.DalamudGrey));
+
+                if (session == currentSessionSnapshot.Value)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, SharedUserInterfaces.SelectedColorTheme);
+
+                }
+
                 if (SharedUserInterfaces.IconButton(session.Icon, BigButtonSize, session.Id))
                 {
                     SetSession(session);
+                }
+
+                if (session == currentSessionSnapshot.Value)
+                {
+                    ImGui.PopStyleColor(1);
+
                 }
 
                 if (ImGui.IsItemHovered())
@@ -110,6 +127,8 @@ public class SessionsTabExperimental(
                     ImGui.EndTooltip();
                 }
             }
+
+            ImGui.PopStyleColor(2);
 
             ImGui.PopStyleVar();
 
@@ -192,14 +211,13 @@ public class SessionsTabExperimental(
 
                         SharedUserInterfaces.Icon(FontAwesomeIcon.User);
                         ImGui.SameLine();
-
-                        // TODO: Find a soft color that works nicely
-                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
+                        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, SharedUserInterfaces.HoveredColorTheme);
+                        ImGui.PushStyleColor(ImGuiCol.HeaderActive, SharedUserInterfaces.SelectedColorTheme);
                         if (ImGui.Selectable($"{friend.NoteOrFriendCode}", false, ImGuiSelectableFlags.SpanAllColumns))
                         {
 
                         }
-                        ImGui.PopStyleColor();
+                        ImGui.PopStyleColor(2);
                     }
 
                     ImGui.EndTable();
