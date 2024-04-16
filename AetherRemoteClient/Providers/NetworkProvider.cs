@@ -31,6 +31,7 @@ public class NetworkProvider(IPluginLog logger)
 
     // Data
     public string? FriendCode { get; private set; }
+    public bool LoggedIn { get; private set; } = false;
 
     public async Task<AsyncResult> Connect()
     {
@@ -76,6 +77,7 @@ public class NetworkProvider(IPluginLog logger)
         if (Plugin.DeveloperMode)
         {
             FriendCode = "Dev";
+            LoggedIn = true;
             return AsyncResult.Successful;
         }
 

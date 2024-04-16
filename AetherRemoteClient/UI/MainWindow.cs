@@ -39,7 +39,7 @@ public class MainWindow : Window
 
         tabs =
         [
-            new DashboardTab(networkProvider),
+            new DashboardTab(friendListProvider, networkProvider, secretProvider, configuration),
             new FriendsTab(friendListProvider, networkProvider, secretProvider, logger),
             new SessionsTab(friendListProvider, secretProvider, networkProvider, emoteProvider, glamourerAccessor, logger, targetManager),
             new LogsTab(),

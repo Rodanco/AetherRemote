@@ -7,7 +7,6 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using System;
 using XivCommon;
 using XivCommon.Functions;
 
@@ -21,7 +20,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = false;
+    public static readonly bool DeveloperMode = true;
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }
@@ -82,16 +81,9 @@ public sealed class Plugin : IDalamudPlugin
         secretProvider = new SecretProvider(pluginInterface);
 
         // Windows
-        mainWindow = new MainWindow(
-            networkProvider, 
-            friendListProvider, 
-            logger, 
-            configuration, 
-            secretProvider,
-            emoteProvider,
-            glamourerAccessor,
-            targetManager
-            );
+        mainWindow = new MainWindow(networkProvider, friendListProvider, logger,
+            configuration, secretProvider, emoteProvider,
+            glamourerAccessor, targetManager);
 
         windowSystem.AddWindow(mainWindow);
 
@@ -102,10 +94,12 @@ public sealed class Plugin : IDalamudPlugin
 
         pluginInterface.UiBuilder.Draw += DrawUI;
         pluginInterface.UiBuilder.OpenMainUi += DrawMainUI;
-        pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
         if (DeveloperMode)
             mainWindow.IsOpen = true;
+
+        // TODO: Remove
+        mainWindow.IsOpen = true;
     }
 
     public void Dispose()
@@ -116,7 +110,6 @@ public sealed class Plugin : IDalamudPlugin
         commandManager.RemoveHandler(CommandName);
 
         pluginInterface.UiBuilder.Draw -= DrawUI;
-        pluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
     }
 
     private void OnCommand(string command, string args)
@@ -135,10 +128,5 @@ public sealed class Plugin : IDalamudPlugin
         actionQueueProvider.Update();
 
         windowSystem.Draw();
-    }
-
-    public void DrawConfigUI()
-    {
-        // 
     }
 }
