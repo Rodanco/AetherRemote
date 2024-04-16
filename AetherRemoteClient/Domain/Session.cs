@@ -8,7 +8,7 @@ namespace AetherRemoteClient.Domain;
 /// <summary>
 /// Represents a session used in the Session Tab
 /// </summary>
-public class Session(string id, FontAwesomeIcon icon, Vector4 color, string? name = null)
+public class Session(string id, FontAwesomeIcon icon, string? name = null)
 {
     /// <summary>
     /// Session Id
@@ -23,14 +23,7 @@ public class Session(string id, FontAwesomeIcon icon, Vector4 color, string? nam
     /// <summary>
     /// The icon for the session
     /// </summary>
-    // TODO: Calculate IconPool before hand, and pass in the result to avoid constant Random instantiation
     public FontAwesomeIcon Icon = icon;
-
-    /// <summary>
-    /// The color of the icon
-    /// </summary>         
-    // TODO: Calculate ColorPool before hand, and pass in the result to avoid constant Random instantiation
-    public Vector4 Color = color;
 
     /// <summary>
     /// List of friends locked into the session

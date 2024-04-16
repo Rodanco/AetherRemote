@@ -4,13 +4,14 @@ using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Emote;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Glamourer;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Speak;
+using AetherRemoteCommon;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface;
-using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
@@ -50,10 +51,6 @@ public class SessionsTabExperimental(
             FontAwesomeIcon.Socks
         ];
 
-    public static readonly List<Vector4> ColorPool = [
-        new Vector4(1, 1, 1, 1)
-        ];
-
     public void Draw()
     {
         if (ImGui.BeginTabItem("Sessions"))
@@ -90,8 +87,7 @@ public class SessionsTabExperimental(
             {
                 var id = random.Next().ToString();
                 var icon = IconPool[random.Next(IconPool.Count)];
-                var color = ColorPool[random.Next(ColorPool.Count)];
-                var session = new Session(id, icon, color);
+                var session = new Session(id, icon);
                 sessions.Add(session);
                 SetSession(session);
             }
@@ -133,8 +129,19 @@ public class SessionsTabExperimental(
     private void DrawSessionArea()
     {
         var style = ImGui.GetStyle();
-        var showFriendsInSessionSnapshot = new Snapshot<bool>(showFriendsInSession);
-        var sessionAreaSize = showFriendsInSessionSnapshot.Value ? Vector2.Zero : new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0);
+        var shouldSetShowFriendsInSession = false;
+        var shouldSetPopup = false;
+
+        Vector2 sessionAreaSize;
+        if (currentSession == null)
+        {
+            sessionAreaSize = Vector2.Zero;
+        }
+        else
+        {
+            sessionAreaSize = showFriendsInSession ? new Vector2(ImGui.GetWindowWidth() - (BigButtonSize.X + 16) - 160, 0) : Vector2.Zero;
+        }
+
         if (ImGui.BeginChild("SessionArea", sessionAreaSize, true))
         {
             if (currentSession == null)
@@ -153,7 +160,8 @@ public class SessionsTabExperimental(
             if (SharedUserInterfaces.IconButton(FontAwesomeIcon.UserPlus, ButtonSize))
             {
                 // TODO: Make Popup to add friends
-                ImGui.OpenPopup("DemoPopup");
+                ImGui.OpenPopup("AddFriendPopup");
+                shouldSetPopup = true;
             }
             if (ImGui.IsItemHovered())
             {
@@ -162,20 +170,31 @@ public class SessionsTabExperimental(
                 ImGui.EndTooltip();
             }
 
+            if (shouldSetPopup)
+            {
+                var width = popupWindowSize.X;
+                var mouse = ImGui.GetMousePos();
+                var pos = new Vector2(mouse.X - (width / 2), mouse.Y);
+
+                InitiateAddFriendPopup();
+
+                ImGui.SetNextWindowPos(pos);
+            }
+
             DrawAddFriendPopup();
 
             ImGui.SameLine();
 
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ButtonSize.X - style.ItemSpacing.X);
-            var icon = showFriendsInSessionSnapshot.Value ? FontAwesomeIcon.UserFriends : FontAwesomeIcon.ArrowRight;
+            var icon = showFriendsInSession ? FontAwesomeIcon.ArrowRight : FontAwesomeIcon.UserFriends;
             if (SharedUserInterfaces.IconButton(icon, ButtonSize))
             {
-                showFriendsInSession = !showFriendsInSession;
+                shouldSetShowFriendsInSession = true;
             }
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                var text = showFriendsInSessionSnapshot.Value ? "Show" : "Hide" + " friends in session";
+                var text = (showFriendsInSession ? "Hide" : "Show") + " friends in session";
                 ImGui.Text(text);
                 ImGui.EndTooltip();
             }
@@ -189,7 +208,7 @@ public class SessionsTabExperimental(
 
         ImGui.SameLine();
 
-        if (!showFriendsInSessionSnapshot.Value)
+        if (showFriendsInSession)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 
@@ -210,7 +229,7 @@ public class SessionsTabExperimental(
                         if (ImGui.Selectable($"{friend.NoteOrFriendCode}", false, ImGuiSelectableFlags.SpanAllColumns))
                         {
                             // TODO: Validate if this is correct
-                            currentSession.TargetFriends.Remove(friend);
+                            // currentSession.TargetFriends.Remove(friend);
                         }
                         if (ImGui.IsItemHovered())
                         {
@@ -228,14 +247,81 @@ public class SessionsTabExperimental(
 
             ImGui.PopStyleVar();
         }
+
+        if (shouldSetShowFriendsInSession)
+            showFriendsInSession = !showFriendsInSession;
+    }
+
+    private string friendSearchString = "";
+    private Vector2 popupWindowSize = new(200, 300);
+    private ThreadedFilter<Friend> friendSearchFilter = new([], null);
+
+    private void InitiateAddFriendPopup()
+    {
+        if (currentSession == null)
+            return;
+
+        var result = new List<Friend>();
+        foreach(var friend in friendListProvider.FriendList)
+        {
+            logger.Info("friend: " + friend);
+            var containedInTargetFriends = currentSession.TargetFriends.Any(targetFriend => targetFriend.FriendCode == friend.FriendCode);
+            if (!containedInTargetFriends)
+                result.Add(friend);
+        }
+
+        friendSearchFilter = new(result, FilterFriend);
+    }
+
+    private bool FilterFriend(Friend friend, string term)
+    {
+        var containedInNote = friend.NoteOrFriendCode.Contains(term, StringComparison.OrdinalIgnoreCase);
+        var containedInFriendCode = friend.FriendCode.Contains(term, StringComparison.OrdinalIgnoreCase);
+        return containedInNote || containedInFriendCode;
     }
 
     private void DrawAddFriendPopup()
     {
-        if (ImGui.BeginPopup("DemoPopup"))
-        {
+        if (currentSession == null)
+            return;
 
-            ImGui.Text("Hi!");
+        var pad = ImGui.GetStyle().WindowPadding;
+        var width = popupWindowSize.X - (pad.X * 4);
+        var childSize = popupWindowSize - new Vector2(pad.X * 2, pad.Y * 2);
+
+        ImGui.SetNextWindowSize(popupWindowSize);
+
+        if (ImGui.BeginPopup("AddFriendPopup", ImGuiWindowFlags.NoMove))
+        {
+            if (ImGui.BeginChild("AddFriendPopupChild", childSize, true))
+            {
+                SharedUserInterfaces.MediumTextCentered("Add Friends");
+
+                ImGui.SetNextItemWidth(width);
+
+                if (ImGui.InputTextWithHint("##AddFriendPopupSearchBar", "Search", ref friendSearchString, AetherRemoteConstants.FriendCodeCharLimit, ImGuiInputTextFlags.None))
+                {
+                   friendSearchFilter.Restart(friendSearchString);
+                }
+
+                var removeFromIndex = -1;
+                for(var i = 0; i < friendSearchFilter.List.Count; i++)
+                {
+                    var friend = friendSearchFilter.List[i];
+                    if (ImGui.Selectable(friend.NoteOrFriendCode))
+                    {
+                        removeFromIndex = i;
+                        currentSession.TargetFriends.Add(friend);
+                    }
+                }
+
+                if (removeFromIndex > -1)
+                {
+                    friendSearchFilter.List.RemoveAt(removeFromIndex);
+                }
+
+                ImGui.EndChild();
+            }
 
             ImGui.EndPopup();
         }
