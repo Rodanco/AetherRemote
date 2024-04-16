@@ -148,6 +148,9 @@
       },
       "aetherremotecommon": {
         "type": "Project"
+      },
+      "glamourer.api": {
+        "type": "Project"
       }
     }
   }
