@@ -5,7 +5,6 @@ using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
 using System.Threading;
 using System.Threading.Tasks;
-using Glamourer.Api.IpcSubscribers;
 
 namespace AetherRemoteClient.Accessors.Glamourer;
 
@@ -17,10 +16,6 @@ public class GlamourerAccessor : IDisposable
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyAll;
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyEquipment;
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyCustomization;
-
-    private readonly ApiVersion glamourerApiVersion;
-    private readonly ApplyState glamourerApplyState;
-    private readonly GetStateBase64 glamourerGetStateBase;
 
     public bool IsGlamourerInstalled { get; private set; }
 
@@ -38,10 +33,6 @@ public class GlamourerAccessor : IDisposable
         glamourerApplyAll = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyAll");
         glamourerApplyOnlyEquipment = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyEquipment");
         glamourerApplyOnlyCustomization = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyCustomization");
-
-        glamourerApiVersion = new(pluginInterface);
-        glamourerApplyState = new(pluginInterface);
-        glamourerGetStateBase = new(pluginInterface);
 
         PeriodicCheckGlamourerApi(() => { 
             IsGlamourerInstalled = CheckGlamourerInstalled();
