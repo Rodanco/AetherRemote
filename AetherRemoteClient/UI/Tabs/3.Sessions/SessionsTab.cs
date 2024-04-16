@@ -4,6 +4,7 @@ using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Emote;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Glamourer;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions.Speak;
+using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface;
@@ -16,7 +17,7 @@ using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 
-public class SessionsTabExperimental(
+public class SessionsTab(
     FriendListProvider friendListProvider,
     SecretProvider secretProvider,
     NetworkProvider networkProvider,

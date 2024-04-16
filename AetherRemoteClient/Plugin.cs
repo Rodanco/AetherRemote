@@ -1,14 +1,13 @@
 using AetherRemoteClient.Accessors.Glamourer;
+using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteClient.Services;
 using AetherRemoteClient.UI;
-using AetherRemoteClient.UI.Experimental;
-using AetherRemoteClient.UI.Windows;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System;
 using XivCommon;
 using XivCommon.Functions;
 
@@ -22,7 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = true;
+    public static readonly bool DeveloperMode = false;
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }
@@ -43,17 +42,9 @@ public sealed class Plugin : IDalamudPlugin
     private NetworkProvider networkProvider { get; init; }
     private SecretProvider secretProvider { get; init; }
 
-    // Services
-    private FriendListService friendListService { get; init; }
-    private NetworkService networkService { get; init; }
-    private SessionManagerService sessionManagerService { get; init; }
-
     // Windows
     private WindowSystem windowSystem  { get; init; }
     private MainWindow mainWindow { get; init; }
-    private LogWindow logWindow { get; init; }
-    private ConfigWindow configWindow { get; init; }
-    private MainWindowExperiment mainWindowExperiment { get; init; }
 
     public Plugin(
         DalamudPluginInterface pluginInterface,
@@ -90,17 +81,8 @@ public sealed class Plugin : IDalamudPlugin
         networkProvider = new NetworkProvider(logger);
         secretProvider = new SecretProvider(pluginInterface);
 
-        // Services
-        friendListService = new FriendListService(logger, networkProvider, friendListProvider, secretProvider);
-        networkService = new NetworkService(logger, pluginInterface, networkProvider, actionQueueProvider, emoteProvider, friendListProvider);
-        sessionManagerService = new SessionManagerService(logger, targetManager, windowSystem, 
-            glamourerAccessor, networkProvider, emoteProvider, secretProvider);
-
         // Windows
-        logWindow = new LogWindow();
-        configWindow = new ConfigWindow(configuration, networkProvider);
-        mainWindow = new MainWindow(logger, pluginInterface, configWindow, logWindow, configuration, networkProvider, secretProvider, friendListService, sessionManagerService);
-        mainWindowExperiment = new MainWindowExperiment(
+        mainWindow = new MainWindow(
             networkProvider, 
             friendListProvider, 
             logger, 
@@ -111,10 +93,7 @@ public sealed class Plugin : IDalamudPlugin
             targetManager
             );
 
-        windowSystem.AddWindow(logWindow);
-        windowSystem.AddWindow(configWindow);
         windowSystem.AddWindow(mainWindow);
-        windowSystem.AddWindow(mainWindowExperiment);
 
         commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -122,16 +101,16 @@ public sealed class Plugin : IDalamudPlugin
         });
 
         pluginInterface.UiBuilder.Draw += DrawUI;
+        pluginInterface.UiBuilder.OpenMainUi += DrawMainUI;
         pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-        //mainWindow.IsOpen = true;
-        mainWindowExperiment.IsOpen = true;
+        if (DeveloperMode)
+            mainWindow.IsOpen = true;
     }
 
     public void Dispose()
     {
         glamourerAccessor.Dispose();
-
 
         windowSystem.RemoveAllWindows();
         commandManager.RemoveHandler(CommandName);
@@ -142,8 +121,12 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        //mainWindow.IsOpen = true;
-        mainWindowExperiment.IsOpen = true;
+        mainWindow.IsOpen = true;
+    }
+
+    private void DrawMainUI()
+    {
+        mainWindow.IsOpen = true;
     }
 
     private void DrawUI()
@@ -156,6 +139,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public void DrawConfigUI()
     {
-        configWindow.IsOpen = true;
+        // 
     }
 }

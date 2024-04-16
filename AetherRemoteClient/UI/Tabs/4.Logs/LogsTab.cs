@@ -1,4 +1,5 @@
 using AetherRemoteClient.Domain;
+using AetherRemoteClient.UI.Tabs;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Logging;
@@ -8,7 +9,7 @@ using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Logs;
 
-public class LogsTabExperimental : ITab
+public class LogsTab : ITab
 {
     private readonly ThreadedFilter<LogEntry> threadedFilter = new(AetherRemoteLogging.Logs, FilterLogEntry);
 

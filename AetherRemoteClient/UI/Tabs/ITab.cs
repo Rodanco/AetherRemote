@@ -1,4 +1,4 @@
-namespace AetherRemoteClient.UI.Experimental.Tabs;
+namespace AetherRemoteClient.UI.Tabs;
 
 public interface ITab
 {

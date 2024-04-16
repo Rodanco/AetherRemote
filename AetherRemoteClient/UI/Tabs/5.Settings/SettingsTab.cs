@@ -1,9 +1,11 @@
+using AetherRemoteClient.Domain;
+using AetherRemoteClient.UI.Tabs;
 using ImGuiNET;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Settings;
 
-public class SettingsTabExperimental(Configuration configuration) : ITab
+public class SettingsTab(Configuration configuration) : ITab
 {
     private readonly Configuration configuration = configuration;
 
@@ -25,7 +27,6 @@ public class SettingsTabExperimental(Configuration configuration) : ITab
 
                 ImGui.EndChild();
             }
-
 
             ImGui.EndTabItem();
         }

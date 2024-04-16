@@ -1,4 +1,3 @@
-using AetherRemoteClient.Domain;
 using AetherRemoteCommon;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -9,7 +8,7 @@ using ImGuiNET;
 using System.Numerics;
 using System.Threading.Tasks;
 
-namespace AetherRemoteClient.UI;
+namespace AetherRemoteClient.Domain;
 
 public class SharedUserInterfaces
 {
@@ -61,7 +60,7 @@ public class SharedUserInterfaces
     {
         ImGui.PushFont(UiBuilder.IconFont);
 
-        var size = ImGui.CalcTextSize(icon.ToIconString()) + (ImGui.GetStyle().FramePadding * 2);
+        var size = ImGui.CalcTextSize(icon.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
         size.X = size.Y;
         size *= scale;
 
@@ -193,7 +192,7 @@ public class SharedUserInterfaces
     public static bool MediumInputText(string id, string hint, ref string secretInputBoxText, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
     {
         MediumFont?.Push();
-        var inputText = ImGui.InputTextWithHint(id, hint, ref secretInputBoxText, 
+        var inputText = ImGui.InputTextWithHint(id, hint, ref secretInputBoxText,
             AetherRemoteConstants.SecretCharLimit, flags);
         MediumFont?.Pop();
         return inputText;
@@ -248,7 +247,7 @@ public class SharedUserInterfaces
         ImGuiWindowFlags? imGuiWindowFlags = null)
     {
         var _sizeX = 170;
-        var _sizeY = filterHelper.List.Count < 10 ? (filterHelper.List.Count * 25) + 10 : 260;
+        var _sizeY = filterHelper.List.Count < 10 ? filterHelper.List.Count * 25 + 10 : 260;
         // TODO: Fix sizing bug when searching through options.
         // For example, when scanning through emotes, if you search "ma" you can see it clearly
 
@@ -273,7 +272,7 @@ public class SharedUserInterfaces
 
         ImGui.SetNextWindowSize(new Vector2(_sizeX, _sizeY));
 
-        if (ImGui.BeginPopup(popupName, imGuiWindowFlags ?? (PopupWindowFlags | ImGuiWindowFlags.ChildWindow)))
+        if (ImGui.BeginPopup(popupName, imGuiWindowFlags ?? PopupWindowFlags | ImGuiWindowFlags.ChildWindow))
         {
             for (var i = 0; i < filterHelper.List.Count; i++)
             {
@@ -326,14 +325,16 @@ public class SharedUserInterfaces
 
     private async Task BuildDefaultFontExtraSizes()
     {
-        BigFont = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(toolkit => {
+        BigFont = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(toolkit =>
+        {
             toolkit.OnPreBuild(preBuild =>
             {
                 preBuild.AddDalamudDefaultFont(BigFontSize);
             });
         });
 
-        MediumFont = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(toolkit => {
+        MediumFont = pluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(toolkit =>
+        {
             toolkit.OnPreBuild(preBuild =>
             {
                 preBuild.AddDalamudDefaultFont(MediumFontSize);

@@ -1,11 +1,13 @@
+using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
+using AetherRemoteClient.UI.Tabs;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
 
-public class DashboardTabExperimental(NetworkProvider networkProvider) : ITab
+public class DashboardTab(NetworkProvider networkProvider) : ITab
 {
     public readonly NetworkProvider networkProvider = networkProvider;
 
