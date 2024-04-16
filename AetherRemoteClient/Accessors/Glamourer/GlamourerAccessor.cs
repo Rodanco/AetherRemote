@@ -1,10 +1,11 @@
 using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Glamourer.Api.IpcSubscribers;
 
 namespace AetherRemoteClient.Accessors.Glamourer;
 
@@ -17,6 +18,10 @@ public class GlamourerAccessor : IDisposable
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyEquipment;
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyCustomization;
 
+    private readonly ApiVersion glamourerApiVersion;
+    private readonly ApplyState glamourerApplyState;
+    private readonly GetStateBase64 glamourerGetStateBase;
+
     public bool IsGlamourerInstalled { get; private set; }
 
     private readonly CancellationTokenSource source = new();
@@ -26,14 +31,31 @@ public class GlamourerAccessor : IDisposable
     {
         this.logger = logger;
 
-        glamourerApiVersions = pluginInterface.GetIpcSubscriber<(int, int)>("Glamourer.ApiVersions");
+        var api_old = "Glamourer.ApiVersions";
+        var api = "IGlamourerApiBase.ApiVersion";
+        glamourerApiVersions = pluginInterface.GetIpcSubscriber<(int, int)>(api);
         glamourerGetAllCustomization = pluginInterface.GetIpcSubscriber<string, string?>("Glamourer.GetAllCustomization");
         glamourerApplyAll = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyAll");
         glamourerApplyOnlyEquipment = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyEquipment");
         glamourerApplyOnlyCustomization = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyCustomization");
 
-        PeriodicCheckGlamourerApi(() => { IsGlamourerInstalled = CheckGlamourerInstalled(); }, source.Token);
+        glamourerApiVersion = new(pluginInterface);
+        glamourerApplyState = new(pluginInterface);
+        glamourerGetStateBase = new(pluginInterface);
+
+        PeriodicCheckGlamourerApi(() => { 
+            IsGlamourerInstalled = CheckGlamourerInstalled();
+            PluginLog.Error(IsGlamourerInstalled.ToString());
+        }, source.Token);
     }
+
+    private void SandBox()
+    {
+        
+
+        // var someone = glamourerGetStateBase.Invoke();
+    }
+
 
     /// <summary>
     /// Apply the glamourer design to a specified character.
@@ -73,7 +95,11 @@ public class GlamourerAccessor : IDisposable
     /// <returns>The character's glamourer data as a string.</returns>
     public string? GetCustomization(string characterName)
     {
-        if (!IsGlamourerInstalled) return null;
+        if (!IsGlamourerInstalled)
+        {
+            logger.Warning("Glamourer::GetAllCustomization - Glamourer not installed.");
+            return null;
+        }
 
         try
         {

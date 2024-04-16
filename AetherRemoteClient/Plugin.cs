@@ -63,7 +63,8 @@ public sealed class Plugin : IDalamudPlugin
         IClientState clientState,
         IDataManager dataManager,
         IPluginLog logger,
-        IChatGui chatGUI)
+        IChatGui chatGUI,
+        IObjectTable objectTable)
     {
         this.commandManager = commandManager;
         this.pluginInterface = pluginInterface;

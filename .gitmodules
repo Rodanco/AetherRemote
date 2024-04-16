@@ -1,0 +1,3 @@
+[submodule "AetherRemoteClient/Glamourer.Api"]
+	path = AetherRemoteClient/Glamourer.Api
+	url = https://github.com/Ottermandias/Glamourer.Api.git
