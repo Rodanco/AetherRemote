@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AetherRemoteCommon\AetherRemoteCommon.csproj" />
-    <ProjectReference Include="..\Glamourer.Api\Glamourer.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

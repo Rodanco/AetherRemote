@@ -30,7 +30,7 @@ public class SessionsTabExperimental(
 
     private Session? currentSession = null;
 
-    private bool showFriendsInSession = true;
+    private bool showFriendsInSession = false;
 
     private static Vector2 ButtonSize = new(30, 30);
     private static Vector2 BigButtonSize = new(40, 40);

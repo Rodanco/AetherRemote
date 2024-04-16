@@ -1,12 +1,8 @@
 using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
-using Glamourer.Api.Helpers;
-using Glamourer.Api.IpcSubscribers;
 using System;
-using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,11 +16,6 @@ public class GlamourerAccessor : IDisposable
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyAll;
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyEquipment;
     private readonly ICallGateSubscriber<string, string, object> glamourerApplyOnlyCustomization;
-
-    private readonly ApiVersion apiVersion;
-    private readonly GetStateBase64 getState;
-
-    private readonly EventSubscriber<nint> _gl;
 
     public bool IsGlamourerInstalled { get; private set; }
 
@@ -41,42 +32,10 @@ public class GlamourerAccessor : IDisposable
         glamourerApplyOnlyEquipment = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyEquipment");
         glamourerApplyOnlyCustomization = pluginInterface.GetIpcSubscriber<string, string, object>("Glamourer.ApplyOnlyCustomization");
 
-        apiVersion = new ApiVersion(pluginInterface);
-        getState = new GetStateBase64(pluginInterface);
-
-        _gl = StateChanged.Subscriber(pluginInterface, []);
-        _gl.Enable();
-
         PeriodicCheckGlamourerApi(() => { 
-            IsGlamourerInstalled = CheckGlamourerInstalled2();
+            IsGlamourerInstalled = CheckGlamourerInstalled();
         }, source.Token);
     }
-
-    private bool CheckGlamourerInstalled2()
-    {
-        var isGlamourerInstalled = false;
-        try
-        {
-            // apiVersion.Invoke();
-
-            //getState.Invoke(1);
-
-            return isGlamourerInstalled;
-        }
-        catch (Exception ex)
-        {
-            PluginLog.Error(ex.ToString());
-            return isGlamourerInstalled;
-        }
-    }
-
-    private void SandBox()
-    {
-        
-
-        // var someone = glamourerGetStateBase.Invoke();
-    }
-
 
     /// <summary>
     /// Apply the glamourer design to a specified character.
