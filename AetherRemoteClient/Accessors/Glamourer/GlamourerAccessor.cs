@@ -59,7 +59,7 @@ public class GlamourerAccessor : IDisposable
         {
             // apiVersion.Invoke();
 
-            getState.Invoke(1);
+            //getState.Invoke(1);
 
             return isGlamourerInstalled;
         }

@@ -96,39 +96,33 @@ public class SessionsTabExperimental(
                 SetSession(session);
             }
 
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, SharedUserInterfaces.HoveredColorTheme);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, SharedUserInterfaces.SelectedColorTheme);
-
             foreach (var session in sessions)
             {
-                var currentSessionSnapshot = new Snapshot<Session>(currentSession?? new Session("tempSession",FontAwesomeIcon.Moon,ImGuiColors.DalamudGrey));
+                var shouldSetSession = false;
 
-                if (session == currentSessionSnapshot.Value)
-                {
+                if (session == currentSession)
                     ImGui.PushStyleColor(ImGuiCol.Button, SharedUserInterfaces.SelectedColorTheme);
 
-                }
-
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, SharedUserInterfaces.HoveredColorTheme);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, SharedUserInterfaces.SelectedColorTheme);
                 if (SharedUserInterfaces.IconButton(session.Icon, BigButtonSize, session.Id))
                 {
-                    SetSession(session);
+                    shouldSetSession = true;
                 }
-
-                if (session == currentSessionSnapshot.Value)
-                {
-                    ImGui.PopStyleColor(1);
-
-                }
-
                 if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
                     ImGui.Text(session.Name);
                     ImGui.EndTooltip();
                 }
-            }
+                ImGui.PopStyleColor(2);
 
-            ImGui.PopStyleColor(2);
+                if (session == currentSession)
+                    ImGui.PopStyleColor();
+
+                if (shouldSetSession)
+                    SetSession(session);
+            }
 
             ImGui.PopStyleVar();
 
@@ -210,14 +204,20 @@ public class SessionsTabExperimental(
                         ImGui.TableSetColumnIndex(0);
 
                         SharedUserInterfaces.Icon(FontAwesomeIcon.User);
+
                         ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, SharedUserInterfaces.HoveredColorTheme);
-                        ImGui.PushStyleColor(ImGuiCol.HeaderActive, SharedUserInterfaces.SelectedColorTheme);
+
                         if (ImGui.Selectable($"{friend.NoteOrFriendCode}", false, ImGuiSelectableFlags.SpanAllColumns))
                         {
-
+                            // TODO: Validate if this is correct
+                            currentSession.TargetFriends.Remove(friend);
                         }
-                        ImGui.PopStyleColor(2);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.BeginTooltip();
+                            ImGui.Text("Right click to remove friend from session");
+                            ImGui.EndTooltip();
+                        }
                     }
 
                     ImGui.EndTable();
