@@ -1,6 +1,6 @@
 namespace AetherRemoteCommon.Domain.Network.Emote;
 
-public class EmoteRequest
+public struct EmoteRequest
 {
     public string Secret { get; set; }
     public List<string> TargetFriendCodes { get; set; }
@@ -13,7 +13,7 @@ public class EmoteRequest
         Emote = emote;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("EmoteCommandRequest");
         sb.AddVariable("Secret", Secret);
@@ -23,7 +23,7 @@ public class EmoteRequest
     }
 }
 
-public class EmoteResponse
+public struct EmoteResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -34,7 +34,7 @@ public class EmoteResponse
         Message = message;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("EmoteCommandResponse");
         sb.AddVariable("Success", Success);
@@ -43,7 +43,7 @@ public class EmoteResponse
     }
 }
 
-public class EmoteExecute
+public struct EmoteExecute
 {
     public string SenderFriendCode { get; set; }
     public string Emote { get; set; }
@@ -54,7 +54,7 @@ public class EmoteExecute
         Emote = emote;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("EmoteCommandExecute");
         sb.AddVariable("SenderFriendCode", SenderFriendCode);

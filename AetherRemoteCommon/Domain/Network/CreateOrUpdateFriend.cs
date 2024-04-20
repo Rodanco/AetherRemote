@@ -2,7 +2,7 @@ using AetherRemoteCommon.Domain.CommonFriend;
 
 namespace AetherRemoteCommon.Domain.Network.CreateOrUpdateFriend;
 
-public class CreateOrUpdateFriendRequest
+public struct CreateOrUpdateFriendRequest
 {
     public string Secret { get; set; }
     public Friend Friend { get; set; }
@@ -13,7 +13,7 @@ public class CreateOrUpdateFriendRequest
         Friend = friend;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("CreateOrUpdateFriendRequest");
         sb.AddVariable("Secret", Secret);
@@ -22,7 +22,7 @@ public class CreateOrUpdateFriendRequest
     }
 }
 
-public class CreateOrUpdateFriendResponse
+public struct CreateOrUpdateFriendResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -35,7 +35,7 @@ public class CreateOrUpdateFriendResponse
         Online = online;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("BecomeCommandResponse");
         sb.AddVariable("Success", Success);

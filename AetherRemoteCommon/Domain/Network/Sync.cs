@@ -1,6 +1,6 @@
 namespace AetherRemoteCommon.Domain.Network.Sync;
 
-public class SyncRequest
+public struct SyncRequest
 {
     public string Secret { get; set; }
     public string FriendListHash { get; set; }
@@ -11,16 +11,16 @@ public class SyncRequest
         FriendListHash = friendListHash;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("SyncRequest");
         sb.AddVariable("Secret", Secret);
         sb.AddVariable("FriendListHash", FriendListHash);
         return sb.ToString();
     }
-}//
+}
 
-public class SyncResponse
+public struct SyncResponse
 {
     public bool HashesMatch { get; set; }
     public string Message { get; set; }
@@ -31,7 +31,7 @@ public class SyncResponse
         Message = message;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("SyncResponse");
         sb.AddVariable("HashesMatch", HashesMatch);

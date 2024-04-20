@@ -2,7 +2,7 @@ using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 
 namespace AetherRemoteCommon.Domain.Network.Become;
 
-public class BecomeRequest
+public struct BecomeRequest
 {
     public string Secret { get; set; }
     public List<string> TargetFriendCodes { get; set; }
@@ -18,7 +18,7 @@ public class BecomeRequest
         GlamourerApplyType = glamourerApplyType;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("BecomeCommandRequest");
         sb.AddVariable("Secret", Secret);
@@ -29,7 +29,7 @@ public class BecomeRequest
     }
 }
 
-public class BecomeResponse
+public struct BecomeResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -40,7 +40,7 @@ public class BecomeResponse
         Message = message;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("BecomeCommandResponse");
         sb.AddVariable("Success", Success);
@@ -49,7 +49,7 @@ public class BecomeResponse
     }
 }
 
-public class BecomeExecute
+public struct BecomeExecute
 {
     public string SenderFriendCode { get; set; }
     public string GlamourerData { get; set; }
@@ -62,7 +62,7 @@ public class BecomeExecute
         GlamourerApplyType = glamourerApplyType;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("BecomeCommandExecute");
         sb.AddVariable("SenderFriendCode", SenderFriendCode);

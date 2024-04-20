@@ -1,6 +1,6 @@
 namespace AetherRemoteCommon.Domain.Network.DeleteFriend;
 
-public class DeleteFriendRequest
+public struct DeleteFriendRequest
 {
     public string Secret { get; set; }
     public string FriendCode { get; set; }
@@ -11,7 +11,7 @@ public class DeleteFriendRequest
         FriendCode = friendCode;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("DeleteFriendRequest");
         sb.AddVariable("Secret", Secret);
@@ -20,7 +20,7 @@ public class DeleteFriendRequest
     }
 }
 
-public class DeleteFriendResponse
+public struct DeleteFriendResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -31,7 +31,7 @@ public class DeleteFriendResponse
         Message = message;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("DeleteFriendResponse");
         sb.AddVariable("Success", Success);

@@ -2,7 +2,7 @@ using AetherRemoteCommon.Domain.CommonFriend;
 
 namespace AetherRemoteCommon.Domain.Network.DownloadFriendList;
 
-public class DownloadFriendListRequest
+public struct DownloadFriendListRequest
 {
     public string Secret { get; set; }
 
@@ -11,7 +11,7 @@ public class DownloadFriendListRequest
         Secret = secrert;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("DownloadFriendListRequest");
         sb.AddVariable("Secret", Secret);
@@ -19,7 +19,7 @@ public class DownloadFriendListRequest
     }
 }
 
-public class DownloadFriendListResponse
+public struct DownloadFriendListResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -32,7 +32,7 @@ public class DownloadFriendListResponse
         FriendList = friendList;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("DownloadFriendListRequest");
         sb.AddVariable("Success", Success);

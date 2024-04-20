@@ -2,7 +2,7 @@ using AetherRemoteCommon.Domain.CommonChatMode;
 
 namespace AetherRemoteCommon.Domain.Network.Speak;
 
-public class SpeakRequest
+public struct SpeakRequest
 {
     public string Secret { get; set; }
     public List<string> TargetFriendCodes { get; set; }
@@ -20,7 +20,7 @@ public class SpeakRequest
         Extra = extra;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("SpeakCommandRequest");
         sb.AddVariable("Secret", Secret);
@@ -32,7 +32,7 @@ public class SpeakRequest
     }
 }
 
-public class SpeakResponse
+public struct SpeakResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -43,7 +43,7 @@ public class SpeakResponse
         Message = message;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("SpeakCommandResponse");
         sb.AddVariable("Success", Success);
@@ -52,7 +52,7 @@ public class SpeakResponse
     }
 }
 
-public class SpeakExecute
+public struct SpeakExecute
 {
     public string SenderFriendCode { get; set; }
     public string Message { get; set; }
@@ -67,7 +67,7 @@ public class SpeakExecute
         Extra = extra;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("SpeakCommandExecute");
         sb.AddVariable("SenderFriendCode", SenderFriendCode);

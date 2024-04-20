@@ -1,6 +1,6 @@
 namespace AetherRemoteCommon.Domain.Network.Login;
 
-public class LoginRequest
+public struct LoginRequest
 {
     public string Secret { get; set; }
 
@@ -9,7 +9,7 @@ public class LoginRequest
         Secret = secret;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("LoginRequest");
         sb.AddVariable("Secret", Secret);
@@ -17,7 +17,7 @@ public class LoginRequest
     }
 }
 
-public class LoginResponse
+public struct LoginResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
@@ -30,7 +30,7 @@ public class LoginResponse
         FriendCode = friendCode;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var sb = new AetherRemoteStringBuilder("LoginResponse");
         sb.AddVariable("Success", Success);
