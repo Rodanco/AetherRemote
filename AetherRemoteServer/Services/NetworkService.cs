@@ -1,182 +1,79 @@
-using AetherRemoteCommon;
-using AetherRemoteCommon.Domain.CommonChatMode;
 using AetherRemoteCommon.Domain.CommonFriend;
-using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
-using AetherRemoteCommon.Domain.Network.Become;
-using AetherRemoteCommon.Domain.Network.Emote;
-using AetherRemoteCommon.Domain.Network.Speak;
 using AetherRemoteServer.Domain;
-using Microsoft.AspNetCore.SignalR;
-using System.Net.Sockets;
-using System.Text;
 
 namespace AetherRemoteServer.Services;
 
-public class NetworkService : INetworkService
+public class NetworkService
 {
-    private static readonly bool EnableVerboseLogging = true;
+    // Mapping ConnectionId -> Secret
+    private readonly Dictionary<string, string> connectionMapping = new();
 
+    // Mapping Secret -> UserData
+    private readonly Dictionary<string, UserData> registeredUsers = new();
     private readonly StorageService storageService = new();
-    private readonly List<User> onlineUsers = new();
 
-    public string? TryGetRequesterFriendCode(string requesterSecret)
+    public ResultWithMessage Login(string connectionId, string secret)
     {
-        return storageService.TryGetFriendCode(requesterSecret);
+        // Validate Secret
+        var userData = storageService.TryGetUserData(secret);
+        if (userData == null)
+            return new ResultWithMessage(false, "Invalid Secret");
+
+        // Register ConnectionId -> Secret
+        if (connectionMapping.ContainsKey(connectionId))
+            return new ResultWithMessage(false, "Connection Id already mapped to a secret. Catastrophic failure! Alert a developer!");
+
+        connectionMapping.Add(connectionId, secret);
+
+        // Register Secret -> UserData
+        if (registeredUsers.ContainsKey(secret))
+            return new ResultWithMessage(false, "Already Registered");
+
+        registeredUsers.Add(secret, userData);
+
+        return new ResultWithMessage(true, "Success", userData.FriendCode);
     }
 
-    public User? TryGetOnlineUser(string friendCode)
+    public ResultWithMessage Logout(string connectionId)
     {
-        return onlineUsers.FirstOrDefault(user => user.FriendCode == friendCode);
-    }
-
-    public GenericResult Register(string secret, string connectionId, List<Friend> friendList)
-    {
-        var friendCode = storageService.TryGetFriendCode(secret);
-        if (friendCode == null)
+        if (connectionMapping.TryGetValue(connectionId, out var secret))
         {
-            var logMessage = $"Provided secret {secret} does not match any records in the database";
-
-            if (EnableVerboseLogging)
-                Log(logMessage);
-
-            return new GenericResult(false, logMessage);
+            connectionMapping.Remove(connectionId);
+            registeredUsers.Remove(secret);
+            return new ResultWithMessage(true);
         }
 
-        var userAlreadyRegistered = onlineUsers.Any(user =>user.Secret == secret);
-        if (userAlreadyRegistered)
-        {
-            var logMessage = $"Already registered secret {secret}";
-
-            if (EnableVerboseLogging)
-                Log(logMessage);
-
-            return new GenericResult(false, logMessage);
-        }
-
-        onlineUsers.Add(new User(secret, friendCode, connectionId, friendList));
-        return new GenericResult(true);
+        return new ResultWithMessage(false, "ConnectionId does not map to a secret or may have already been terminated");
     }
 
-    public GenericResult CreateOrUpdateFriend(User requesterUser, Friend friendToCreateOrUpdate)
+    public ResultWithMessage Sync(string secret, string friendListHash)
     {
-        var validFriendCode = storageService.IsValidFriendCode(friendToCreateOrUpdate.FriendCode);
-        if (validFriendCode == false)
-            return new GenericResult(false, $"FriendCode does not exist: {friendToCreateOrUpdate.FriendCode}");
-
-        var index = requesterUser.FriendList.FindIndex(friend => friend.FriendCode == friendToCreateOrUpdate.FriendCode);
-        if (index < 0)
+        if (registeredUsers.TryGetValue(secret, out var userData))
         {
-            requesterUser.FriendList.Add(friendToCreateOrUpdate);
-        }
-        else
-        {
-            requesterUser.FriendList[index] = friendToCreateOrUpdate;
+            var hash = userData.Friends.GetHashCode();
+            var hashesMatch = hash.ToString() == friendListHash;
+            return new ResultWithMessage(hashesMatch);
         }
 
-        return new GenericResult(true);
+        return new ResultWithMessage(false, "Requester not logged in");
     }
 
-    public GenericResult DeleteFriend(User requesterUser, string friendCodeToDelete)
+    public ResultWithFriends FetchFriendList(string secret)
     {
-        var index = requesterUser.FriendList.FindIndex(f => f.FriendCode == friendCodeToDelete);
-        if (index > -1)
-            requesterUser.FriendList.RemoveAt(index);
+        if (registeredUsers.TryGetValue(secret, out var userData))
+            return new ResultWithFriends(true, string.Empty, userData.Friends);
 
-        return new GenericResult(true);
+        return new ResultWithFriends(false, "Requester not logged in");
     }
-
-    public GenericResult IssueSpeakCommand(string issuerFriendCode, ChatMode channel, string message,
-        string? extra, List<string> targetFriendCodes, IHubCallerClients clients)
+    
+    public ResultWithMessage UpdateFriendList(string secret,  List<Friend> friendList)
     {
-        foreach (var targetFriendCode in targetFriendCodes)
+        if (registeredUsers.TryGetValue(secret, out var userData))
         {
-            var targetUser = TryGetOnlineUser(targetFriendCode);
-            if (targetUser == null)
-                continue; // Target is offline
-
-            var issuerOnTargetFriendList = targetUser.IsFriendsWith(issuerFriendCode);
-            if (issuerOnTargetFriendList == false)
-                continue; // Issuer is not on target's friend list
-
-            try
-            {
-                var execute = new SpeakCommandExecute(issuerFriendCode, message, channel, extra);
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiSpeak, execute);
-            }
-            catch (Exception ex)
-            {
-                return new GenericResult(false, ex.Message);
-            }
+            userData.Friends = friendList;
+            return new ResultWithMessage(true);
         }
 
-        return new GenericResult(true);
-    }
-
-    public GenericResult IssueEmoteCommand(string issuerFriendCode, string emote, List<string> targetFriendCodes, 
-        IHubCallerClients clients)
-    {
-        foreach (var targetFriendCode in targetFriendCodes)
-        {
-            var targetUser = TryGetOnlineUser(targetFriendCode);
-            if (targetUser == null)
-            {
-                Console.WriteLine("Ugh12.");
-                continue; // Target is offline
-            }
-
-            var issuerOnTargetFriendList = targetUser.IsFriendsWith(issuerFriendCode);
-            if (issuerOnTargetFriendList == false)
-            {
-                Console.WriteLine("Ugh.");
-                continue; // Issuer is not on target's friend list
-            }
-
-            try
-            {
-                var execute = new EmoteCommandExecute(issuerFriendCode, emote);
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiEmote, execute);
-            }
-            catch (Exception ex)
-            {
-                return new GenericResult(false, ex.Message);
-            }
-        }
-
-        return new GenericResult(true);
-    }
-
-    public GenericResult IssueBecomeCommand(string issuerFriendCode, string glamourerData, GlamourerApplyType glamourerApplyType,
-        List<string> targetFriendCodes, IHubCallerClients clients)
-    {
-        foreach (var targetFriendCode in targetFriendCodes)
-        {
-            var targetUser = TryGetOnlineUser(targetFriendCode);
-            if (targetUser == null)
-                continue; // Target is offline
-
-            var issuerOnTargetFriendList = targetUser.IsFriendsWith(issuerFriendCode);
-            if (issuerOnTargetFriendList == false)
-                continue; // Issuer is not on target's friend list
-
-            try
-            {
-                var execute = new BecomeCommandExecute(issuerFriendCode, glamourerData, glamourerApplyType);
-                clients.Client(targetUser.ConnectionId).SendAsync(AetherRemoteConstants.ApiBecome, execute);
-            }
-            catch (Exception ex)
-            {
-                return new GenericResult(false, ex.Message);
-            }
-        }
-
-        return new GenericResult(true);
-    }
-
-    private static void Log(string message)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("[NetworkService] ");
-        sb.AppendLine(message);
-        Console.WriteLine(sb.ToString());
+        return new ResultWithMessage(false, "Requester not logged in");
     }
 }

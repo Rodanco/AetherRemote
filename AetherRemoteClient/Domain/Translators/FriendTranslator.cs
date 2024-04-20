@@ -20,11 +20,21 @@ public static class FriendTranslator
 
     public static List<AetherRemoteCommon.Domain.CommonFriend.Friend> DomainFriendListToCommon(List<Friend> friends)
     {
-        var baseFriends = new List<AetherRemoteCommon.Domain.CommonFriend.Friend>();
+        var converted = new List<AetherRemoteCommon.Domain.CommonFriend.Friend>();
         foreach (var friend in friends)
         {
-            baseFriends.Add(DomainToCommon(friend));
+            converted.Add(DomainToCommon(friend));
         }
-        return baseFriends;
+        return converted;
+    }
+
+    public static List<Friend> CommonFriendListToDomain(List<AetherRemoteCommon.Domain.CommonFriend.Friend> friends)
+    {
+        var converted = new List<Friend>();
+        foreach (var friend in friends)
+        {
+            converted.Add(CommonToDomain(friend));
+        }
+        return converted;
     }
 }

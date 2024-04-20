@@ -14,8 +14,6 @@ public class Friend
     /// A name set by the client to identify a friend more easily
     /// </summary>
     /// 
-
-    // TODO: Convert this to a normal string. All logic should check against string.Empty or "".
     public string? Note { get; set; }
 
     /// <summary>

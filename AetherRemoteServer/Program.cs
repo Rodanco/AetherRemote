@@ -5,7 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSingleton<INetworkService, NetworkService>();
 builder.Services.AddSignalR(options => options.EnableDetailedErrors = true);
 
 builder.WebHost.UseUrls("http://10.0.0.148:25565");

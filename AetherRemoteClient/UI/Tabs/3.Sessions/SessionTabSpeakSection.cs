@@ -62,7 +62,7 @@ public class SessionTabSpeakSection(NetworkProvider networkProvider, SecretProvi
         {
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200);
-            ImGui.InputTextWithHint("###TellTarget", "Target", ref tellTarget, AetherRemoteConstants.PlayerNameCharLimit);
+            ImGui.InputTextWithHint("###TellTarget", "Target", ref tellTarget, Constants.PlayerNameCharLimit);
         }
 
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Comment))
@@ -120,7 +120,7 @@ public class SessionTabSpeakSection(NetworkProvider networkProvider, SecretProvi
 
         var secret = secretProvider.Secret;
         var targets = currentSession.TargetFriends;
-        var result = await networkProvider.IssueSpeakCommand(secret, targets, message, chatMode, extra);
+        var result = await networkProvider.Speak(secret, targets, message, chatMode, extra);
         if (result.Success)
         {
             sb.Clear();

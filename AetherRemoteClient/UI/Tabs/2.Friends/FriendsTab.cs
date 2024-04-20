@@ -84,7 +84,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         if (ImGui.BeginTabItem("Friends"))
         {
             ImGui.SetNextItemWidth(friendListAreaSize);
-            if (ImGui.InputTextWithHint("##SearchFriendListInputText", "Search", ref friendCodeSearchInputText, AetherRemoteConstants.FriendNicknameCharLimit))
+            if (ImGui.InputTextWithHint("##SearchFriendListInputText", "Search", ref friendCodeSearchInputText, Constants.FriendNicknameCharLimit))
             {
                 friendSearchFilter.Restart(friendCodeSearchInputText);
             }
@@ -116,7 +116,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             ImGui.PopStyleVar();
 
             ImGui.SetNextItemWidth(friendListAreaSize);
-            if (ImGui.InputTextWithHint("##FriendCodeInputText", "Friend Code", ref friendCodeAddFriendInputText, AetherRemoteConstants.FriendCodeCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
+            if (ImGui.InputTextWithHint("##FriendCodeInputText", "Friend Code", ref friendCodeAddFriendInputText, Constants.FriendCodeCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 AddFriendInInputText();
             }
@@ -179,7 +179,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             SharedUserInterfaces.TextCentered("Details");
 
             ImGui.SetNextItemWidth(friendListAreaSize);
-            ImGui.InputTextWithHint("Note##EditingFriendCode", "Note", ref friendNote, AetherRemoteConstants.FriendCodeCharLimit);
+            ImGui.InputTextWithHint("Note##EditingFriendCode", "Note", ref friendNote, Constants.FriendCodeCharLimit);
             ImGui.SameLine();
             SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
             if (ImGui.IsItemHovered())

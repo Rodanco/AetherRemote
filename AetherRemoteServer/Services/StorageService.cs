@@ -1,3 +1,4 @@
+using AetherRemoteServer.Domain;
 using System.Text;
 using System.Text.Json;
 
@@ -5,64 +6,75 @@ namespace AetherRemoteServer.Services;
 
 public class StorageService
 {
-    private static readonly bool EnableVerboseLogging = true;
+    private static readonly string UserDataFileName = "userData.json";
+    private static readonly string UserDataPartialPath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
+    private static readonly JsonSerializerOptions SaveOptions = new() { WriteIndented = true };
 
-    private readonly string validSecretsAndFriendCodesPath = Path.Combine("Data", "validSecretsAndFriendCodes.json");
-    private readonly Dictionary<string, string> validSecretsAndFriendCodes;
+    private readonly Dictionary<string, UserData> userDataDictionary;
+
+    /// <summary>
+    /// There are situations where the server may fail to load the 'database'. In that case, it will
+    /// return an empty list. If a valid file exists, but it just fails to load, a save would write over
+    /// the contents of the valid file, which is bad. This variable will be set to true only if the original
+    /// file fails to load, and when it is set to true, it instructs all saving to be done to an alternate file
+    /// </summary>
+    private bool safeguard = false;
 
     public StorageService()
     {
-        validSecretsAndFriendCodes = LoadSecretsAndFriendCodesFile();
+        userDataDictionary = LoadUserData();
     }
 
-    public bool IsValidSecret(string secret)
+    public UserData? TryGetUserData(string secret)
     {
-        return validSecretsAndFriendCodes.ContainsKey(secret);
-    }
-
-    public bool IsValidFriendCode(string friendCode)
-    {
-        return validSecretsAndFriendCodes.ContainsValue(friendCode);
-    }
-
-    public string? TryGetFriendCode(string secret)
-    {
-        var foundFriendCode = validSecretsAndFriendCodes.TryGetValue(secret, out var friendCode);
-        if (EnableVerboseLogging && foundFriendCode == false)
+        if (userDataDictionary.TryGetValue(secret, out var userData))
         {
-            Log($"Could not find secret in database: {secret}");
+            return userData;
         }
 
-        return friendCode;
+        return null;
     }
 
-    private Dictionary<string, string> LoadSecretsAndFriendCodesFile()
+    private Dictionary<string, UserData> LoadUserData()
     {
-        Dictionary<string, string>? result = null;
+        Dictionary<string, UserData>? result = null;
         try
         {
-            if (File.Exists(validSecretsAndFriendCodesPath))
+            var path = Path.Combine(UserDataPartialPath, UserDataFileName);
+            if (File.Exists(path))
             {
-                var raw = File.ReadAllText(validSecretsAndFriendCodesPath);
-                result = JsonSerializer.Deserialize<Dictionary<string, string>>(raw);
+                var serializedUserData = File.ReadAllText(path);
+                result = JsonSerializer.Deserialize<Dictionary<string, UserData>>(serializedUserData);
+            }
+            else
+            {
+                File.Create(path).Dispose();
+                result = new();
             }
         }
         catch (Exception ex)
         {
-            Log($"Something went wrong loading the secret & friend code file: {ex.Message}");
+            Log($"Error loading database: {ex.Message}", true);
         }
 
-        result ??= new();
-        result.Add("test_account_secret", "test_account_friendcode");
+        // Something went wrong, fallback to safeguard
+        if (result == null)
+        {
+            safeguard = true;
+            result = new();
+        }
+            
         return result;
     }
 
-    private void Save()
+    private void SaveUserData()
     {
         try
         {
-            var raw = JsonSerializer.Serialize(validSecretsAndFriendCodes);
-            File.WriteAllText(validSecretsAndFriendCodesPath, raw);
+            var filename = safeguard ? $"safe_{UserDataFileName}" : UserDataFileName;
+            var path = Path.Combine(UserDataPartialPath, filename);
+            var serializedUserData = JsonSerializer.Serialize(userDataDictionary, SaveOptions);
+            File.WriteAllText(path, serializedUserData);
         }
         catch(Exception ex)
         {
@@ -70,11 +82,18 @@ public class StorageService
         }
     }
 
-    private static void Log(string message)
+    private static void Log(string message, bool critial = false)
     {
         var sb = new StringBuilder();
         sb.AppendLine("[StorageService] ");
         sb.AppendLine(message);
+
+        if (critial)
+            Console.ForegroundColor = ConsoleColor.Red;
+
         Console.WriteLine(sb.ToString());
+
+        if (critial)
+            Console.ResetColor();
     }
 }

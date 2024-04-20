@@ -21,15 +21,15 @@ public class MainWindow : Window
     private readonly List<ITab> tabs;
 
     public MainWindow(
-        NetworkProvider networkProvider,
-        FriendListProvider friendListProvider,
-        IPluginLog logger,
         Configuration configuration,
-        SecretProvider secretProvider,
         EmoteProvider emoteProvider,
+        FriendListProvider friendListProvider,
         GlamourerAccessor glamourerAccessor,
+        NetworkProvider networkProvider,
+        SecretProvider secretProvider,
+        IPluginLog logger,
         ITargetManager targetManager
-        ) : base("Aether Remote - Version 1.0.0.0", MainWindowFlags)
+        ) : base($"Aether Remote - Version {Plugin.Version}", MainWindowFlags)
     {
         SizeConstraints = new WindowSizeConstraints()
         {
@@ -39,9 +39,9 @@ public class MainWindow : Window
 
         tabs =
         [
-            new DashboardTab(friendListProvider, networkProvider, secretProvider, configuration),
+            new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider),
             new FriendsTab(friendListProvider, networkProvider, secretProvider, logger),
-            new SessionsTab(friendListProvider, secretProvider, networkProvider, emoteProvider, glamourerAccessor, logger, targetManager),
+            new SessionsTab(glamourerAccessor, emoteProvider, friendListProvider, networkProvider, secretProvider, logger, targetManager),
             new LogsTab(),
             new SettingsTab(configuration)
         ];

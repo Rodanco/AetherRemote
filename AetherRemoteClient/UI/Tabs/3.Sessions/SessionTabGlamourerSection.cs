@@ -67,7 +67,7 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
 
         ImGui.SameLine();
 
-        if (ImGui.InputTextWithHint("###GlamourerDataInput", "Enter glamourer data", ref glamourerData, AetherRemoteConstants.GlamourerDataCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
+        if (ImGui.InputTextWithHint("###GlamourerDataInput", "Enter glamourer data", ref glamourerData, Constants.GlamourerDataCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
         {
             shouldProcessGlamourerCommand = true;
         }
@@ -105,7 +105,7 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
 
         var secret = secretProvider.Secret;
         var targets = currentSession.TargetFriends;
-        var result = await networkProvider.IssueBecomeCommand(secret, targets, glamourerData, glamourerApplyType);
+        var result = await networkProvider.Become(secret, targets, glamourerData, glamourerApplyType);
         if (result.Success)
         {
             var sb = new StringBuilder();

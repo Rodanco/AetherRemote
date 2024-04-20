@@ -1,6 +1,6 @@
 namespace AetherRemoteCommon;
 
-public static class AetherRemoteConstants
+public static class Constants
 {
     /// <summary>
     /// Limits the amount of characters when entering a friend code
@@ -39,9 +39,12 @@ public static class AetherRemoteConstants
 
     // API Methods
     public const string ApiLogin = "Login";
+    public const string ApiSync = "Sync";
+    public const string ApiUploadFriendList = "UploadFriendList";
+    public const string ApiDownloadFriendList = "DownloadFriendList";
     public const string ApiCreateOrUpdateFriend = "CreateOrUpdateFriend";
     public const string ApiDeleteFriend = "DeleteFriend";
-    public const string ApiSpeak = "Speak";
-    public const string ApiEmote = "Emote";
     public const string ApiBecome = "Become";
+    public const string ApiEmote = "Emote";
+    public const string ApiSpeak = "Speak";
 }

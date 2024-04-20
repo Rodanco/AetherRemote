@@ -59,7 +59,7 @@ public class SessionTabEmoteSection(NetworkProvider networkProvider, SecretProvi
 
         var secret = secretProvider.Secret;
         var targets = currentSession.TargetFriends;
-        var result = await networkProvider.IssueEmoteCommand(secret, targets, emote);
+        var result = await networkProvider.Emote(secret, targets, emote);
         if (result.Success)
         {
             var sb = new StringBuilder();

@@ -60,7 +60,7 @@ public class SharedUserInterfaces
     {
         ImGui.PushFont(UiBuilder.IconFont);
 
-        var size = ImGui.CalcTextSize(icon.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
+        var size = ImGui.CalcTextSize(icon.ToIconString()) + (ImGui.GetStyle().FramePadding * 2);
         size.X = size.Y;
         size *= scale;
 
@@ -193,7 +193,7 @@ public class SharedUserInterfaces
     {
         MediumFont?.Push();
         var inputText = ImGui.InputTextWithHint(id, hint, ref secretInputBoxText,
-            AetherRemoteConstants.SecretCharLimit, flags);
+            Constants.SecretCharLimit, flags);
         MediumFont?.Pop();
         return inputText;
     }
@@ -247,7 +247,7 @@ public class SharedUserInterfaces
         ImGuiWindowFlags? imGuiWindowFlags = null)
     {
         var _sizeX = 170;
-        var _sizeY = filterHelper.List.Count < 10 ? filterHelper.List.Count * 25 + 10 : 260;
+        var _sizeY = filterHelper.List.Count < 10 ? (filterHelper.List.Count * 25) + 10 : 260;
         // TODO: Fix sizing bug when searching through options.
         // For example, when scanning through emotes, if you search "ma" you can see it clearly
 

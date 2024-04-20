@@ -3,7 +3,7 @@ using AetherRemoteCommon.Domain.CommonFriend;
 using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using System.Text;
 
-namespace AetherRemoteCommon.Domain.Network;
+namespace AetherRemoteCommon.Domain;
 
 public class AetherRemoteStringBuilder
 {

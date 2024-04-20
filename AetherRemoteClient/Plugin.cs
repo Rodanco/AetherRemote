@@ -20,7 +20,12 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = true;
+    public static readonly bool DeveloperMode = false;
+
+    /// <summary>
+    /// Internal plugin version
+    /// </summary>
+    public static readonly string Version = "1.0.0.0";
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }
@@ -40,6 +45,9 @@ public sealed class Plugin : IDalamudPlugin
     private FriendListProvider friendListProvider { get; init; }
     private NetworkProvider networkProvider { get; init; }
     private SecretProvider secretProvider { get; init; }
+
+    // Listener
+    private NetworkListener networkListener { get; init; }
 
     // Windows
     private WindowSystem windowSystem  { get; init; }
@@ -74,42 +82,44 @@ public sealed class Plugin : IDalamudPlugin
         glamourerAccessor = new GlamourerAccessor(logger, pluginInterface);
 
         // Providers
-        actionQueueProvider = new ActionQueueProvider(logger, clientState, chat, glamourerAccessor);
+        actionQueueProvider = new ActionQueueProvider(chat, glamourerAccessor, clientState, logger);
         emoteProvider = new EmoteProvider(dataManager);
         friendListProvider = new FriendListProvider(pluginInterface);
         networkProvider = new NetworkProvider(logger);
         secretProvider = new SecretProvider(pluginInterface);
 
+        // Network Listener
+        networkListener = new NetworkListener(actionQueueProvider, emoteProvider, friendListProvider, networkProvider, logger);
+
         // Windows
-        mainWindow = new MainWindow(networkProvider, friendListProvider, logger,
-            configuration, secretProvider, emoteProvider,
-            glamourerAccessor, targetManager);
+        mainWindow = new MainWindow(configuration, emoteProvider, friendListProvider, glamourerAccessor, 
+            networkProvider, secretProvider, logger, targetManager);
 
         windowSystem.AddWindow(mainWindow);
 
         commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Opens the Aether Remote dashboard"
+            HelpMessage = "Opens primary Aether Remote window"
         });
 
         pluginInterface.UiBuilder.Draw += DrawUI;
-        pluginInterface.UiBuilder.OpenMainUi += DrawMainUI;
+        pluginInterface.UiBuilder.OpenMainUi += OpenMainUI;
 
         if (DeveloperMode)
             mainWindow.IsOpen = true;
-
-        // TODO: Remove
-        mainWindow.IsOpen = true;
     }
 
     public void Dispose()
     {
         glamourerAccessor.Dispose();
 
+        networkProvider.Dispose();
+
         windowSystem.RemoveAllWindows();
         commandManager.RemoveHandler(CommandName);
 
         pluginInterface.UiBuilder.Draw -= DrawUI;
+        pluginInterface.UiBuilder.OpenMainUi -= OpenMainUI;
     }
 
     private void OnCommand(string command, string args)
@@ -117,16 +127,16 @@ public sealed class Plugin : IDalamudPlugin
         mainWindow.IsOpen = true;
     }
 
-    private void DrawMainUI()
-    {
-        mainWindow.IsOpen = true;
-    }
-
     private void DrawUI()
     {
-        // Convenient way to do this
+        // This way we can ensure all updates are taking place on the main thread
         actionQueueProvider.Update();
 
         windowSystem.Draw();
+    }
+
+    private void OpenMainUI()
+    {
+        mainWindow.IsOpen = true;
     }
 }

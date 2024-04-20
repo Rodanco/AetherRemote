@@ -1,6 +1,7 @@
 using AetherRemoteCommon;
 using AetherRemoteCommon.Domain.CommonFriend;
-using AetherRemoteCommon.Domain.Network;
+using AetherRemoteCommon.Domain.Network.CreateOrUpdateFriend;
+using AetherRemoteCommon.Domain.Network.Login;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Diagnostics;
 
@@ -33,8 +34,8 @@ public class Tests
     [Test]
     public async Task TestLogin()
     {
-        var request = new LoginRequest(ValidSecret, new());
-        var response = await connection.InvokeAsync<LoginResponse>(AetherRemoteConstants.ApiLogin, request);
+        var request = new LoginRequest(ValidSecret);
+        var response = await connection.InvokeAsync<LoginResponse>(Constants.ApiLogin, request);
         Assert.Multiple(() =>
         {
             Assert.That(response.Success, Is.True);
@@ -45,8 +46,8 @@ public class Tests
     [Test]
     public async Task TestLoginBadSecret()
     {
-        var request = new LoginRequest(InvalidSecret, new());
-        var response = await connection.InvokeAsync<LoginResponse>(AetherRemoteConstants.ApiLogin, request);
+        var request = new LoginRequest(InvalidSecret);
+        var response = await connection.InvokeAsync<LoginResponse>(Constants.ApiLogin, request);
         Assert.Multiple(() =>
         {
             Assert.That(response.Success, Is.False);
@@ -58,7 +59,7 @@ public class Tests
     public async Task TestCreateOrUpdateFriend()
     {
         var request = new CreateOrUpdateFriendRequest(ValidSecret, new Friend());
-        var response = await connection.InvokeAsync<CreateOrUpdateFriendResponse>(AetherRemoteConstants.ApiCreateOrUpdateFriend, request);
+        var response = await connection.InvokeAsync<CreateOrUpdateFriendResponse>(Constants.ApiCreateOrUpdateFriend, request);
         Assert.That(response.Success, Is.True);
     }
 

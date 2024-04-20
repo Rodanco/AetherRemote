@@ -13,7 +13,7 @@ namespace AetherRemoteClient.Providers;
 /// <summary>
 /// Queues actions on the main XIV thread.
 /// </summary>
-public class ActionQueueProvider(IPluginLog logger, IClientState clientState, Chat chat, GlamourerAccessor glamourerAccessor)
+public class ActionQueueProvider(Chat chat, GlamourerAccessor glamourerAccessor, IClientState clientState, IPluginLog logger)
 {
     // Data
     private readonly ChatActionQueue chatActionQueue = new(logger, clientState, chat);

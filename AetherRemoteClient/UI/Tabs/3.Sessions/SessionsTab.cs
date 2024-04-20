@@ -18,11 +18,11 @@ using System.Numerics;
 namespace AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 
 public class SessionsTab(
-    FriendListProvider friendListProvider,
-    SecretProvider secretProvider,
-    NetworkProvider networkProvider,
-    EmoteProvider emoteProvider,
     GlamourerAccessor glamourerAccessor,
+    EmoteProvider emoteProvider,
+    FriendListProvider friendListProvider,
+    NetworkProvider networkProvider,
+    SecretProvider secretProvider,
     IPluginLog logger,
     ITargetManager targetManager) : ITab
 {
@@ -31,14 +31,26 @@ public class SessionsTab(
 
     private Session? currentSession = null;
 
+    /// <summary>
+    /// Bool to toggle whether or not the side-panel showing friends in the current session is visible
+    /// </summary>
     private bool showFriendsInSession = false;
 
     private static Vector2 ButtonSize = new(30, 30);
     private static Vector2 BigButtonSize = new(40, 40);
 
+    /// <summary>
+    /// Dimensions of the "Add Friend to Session" popup window
+    /// </summary>
+    private static Vector2 PopupWindowSize = new(200, 300);
+
     private readonly SessionTabSpeakSection speakSection = new(networkProvider, secretProvider);
     private readonly SessionTabEmoteSection emoteSection = new(networkProvider, secretProvider, emoteProvider);
     private readonly SessionTabGlamourerSection glamourerSection = new(networkProvider, secretProvider, glamourerAccessor, logger, targetManager);
+
+    // Add Friend to Session Popup
+    private string friendSearchString = "";
+    private ThreadedFilter<Friend> friendSearchFilter = new([], FilterFriend);
 
     public static readonly List<FontAwesomeIcon> IconPool = [
         FontAwesomeIcon.Feather,
@@ -160,7 +172,6 @@ public class SessionsTab(
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - (2 * (ButtonSize.X + style.ItemSpacing.X)));
             if (SharedUserInterfaces.IconButton(FontAwesomeIcon.UserPlus, ButtonSize))
             {
-                // TODO: Make Popup to add friends
                 ImGui.OpenPopup("AddFriendPopup");
                 shouldSetPopup = true;
             }
@@ -173,7 +184,7 @@ public class SessionsTab(
 
             if (shouldSetPopup)
             {
-                var width = popupWindowSize.X;
+                var width = PopupWindowSize.X;
                 var mouse = ImGui.GetMousePos();
                 var pos = new Vector2(mouse.X - (width / 2), mouse.Y);
 
@@ -211,14 +222,16 @@ public class SessionsTab(
 
         if (showFriendsInSession)
         {
+            if (currentSession == null)
+                return;
+
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 
             if (ImGui.BeginChild("SessionFriendsArea", Vector2.Zero, true))
             {
                 if (ImGui.BeginTable("FriendListTable", 1, ImGuiTableFlags.Borders))
                 {
-                    // TODO: Remove ! operator
-                    foreach (var friend in currentSession!.TargetFriends)
+                    foreach (var friend in currentSession.TargetFriends)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableSetColumnIndex(0);
@@ -253,10 +266,6 @@ public class SessionsTab(
             showFriendsInSession = !showFriendsInSession;
     }
 
-    private string friendSearchString = "";
-    private Vector2 popupWindowSize = new(200, 300);
-    private ThreadedFilter<Friend> friendSearchFilter = new([], null);
-
     private void InitiateAddFriendPopup()
     {
         if (currentSession == null)
@@ -274,7 +283,7 @@ public class SessionsTab(
         friendSearchFilter = new(result, FilterFriend);
     }
 
-    private bool FilterFriend(Friend friend, string term)
+    private static bool FilterFriend(Friend friend, string term)
     {
         var containedInNote = friend.NoteOrFriendCode.Contains(term, StringComparison.OrdinalIgnoreCase);
         var containedInFriendCode = friend.FriendCode.Contains(term, StringComparison.OrdinalIgnoreCase);
@@ -287,10 +296,10 @@ public class SessionsTab(
             return;
 
         var pad = ImGui.GetStyle().WindowPadding;
-        var width = popupWindowSize.X - (pad.X * 4);
-        var childSize = popupWindowSize - new Vector2(pad.X * 2, pad.Y * 2);
+        var width = PopupWindowSize.X - (pad.X * 4);
+        var childSize = PopupWindowSize - new Vector2(pad.X * 2, pad.Y * 2);
 
-        ImGui.SetNextWindowSize(popupWindowSize);
+        ImGui.SetNextWindowSize(PopupWindowSize);
 
         if (ImGui.BeginPopup("AddFriendPopup", ImGuiWindowFlags.NoMove))
         {
@@ -300,7 +309,7 @@ public class SessionsTab(
 
                 ImGui.SetNextItemWidth(width);
 
-                if (ImGui.InputTextWithHint("##AddFriendPopupSearchBar", "Search", ref friendSearchString, AetherRemoteConstants.FriendCodeCharLimit, ImGuiInputTextFlags.None))
+                if (ImGui.InputTextWithHint("##AddFriendPopupSearchBar", "Search", ref friendSearchString, Constants.FriendCodeCharLimit, ImGuiInputTextFlags.None))
                 {
                    friendSearchFilter.Restart(friendSearchString);
                 }

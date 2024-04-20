@@ -2,7 +2,6 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.UI.Tabs;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
-using Dalamud.Logging;
 using ImGuiNET;
 using System;
 using System.Numerics;
@@ -84,6 +83,10 @@ public class LogsTab : ITab
 
         // In the sender
         if (entry.Sender.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // In Type
+        if (entry.Type.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;

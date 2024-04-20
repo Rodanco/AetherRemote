@@ -9,13 +9,13 @@ using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
 
-public class DashboardTab(FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider, Configuration configuration) : ITab
+public class DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider) : ITab
 {
+    public readonly Configuration configuration = configuration;
     public readonly FriendListProvider friendListProvider = friendListProvider;
     public readonly NetworkProvider networkProvider = networkProvider;
     public readonly SecretProvider secretProvider = secretProvider;
-    public readonly Configuration configuration = configuration;
-
+    
     private static readonly int LoginElementsWidth = 200;
     private static readonly Vector2 Spacing = new(8, 8);
 
@@ -30,6 +30,8 @@ public class DashboardTab(FriendListProvider friendListProvider, NetworkProvider
                 SharedUserInterfaces.BigTextCentered("Aether Remote", ImGuiColors.ParsedOrange);
                 SharedUserInterfaces.MediumTextCentered("Version 1.0.0.0");
 
+                // TODO: Modify this code (everything with state) to use the new hybrid connection state
+                // which encapsulates both the SignalR connection and logging in.
                 var state = networkProvider.Connection.State;
                 var color = state switch
                 {
@@ -62,7 +64,7 @@ public class DashboardTab(FriendListProvider friendListProvider, NetworkProvider
 
                     ImGui.SetCursorPosX(x);
                     ImGui.SetNextItemWidth(LoginElementsWidth);
-                    if (ImGui.InputTextWithHint("##SecretInput", "Enter Secret", ref secretInputText, AetherRemoteConstants.SecretCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
+                    if (ImGui.InputTextWithHint("##SecretInput", "Enter Secret", ref secretInputText, Constants.SecretCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
                         shouldLogin = true;
                     }
@@ -100,10 +102,14 @@ public class DashboardTab(FriendListProvider friendListProvider, NetworkProvider
         secretProvider.Secret = secretInputText;
         secretProvider.Save();
 
-        var connectResult = await networkProvider.Connect();
+        var connectResult = await networkProvider.Connect(secretProvider.Secret);
         if (connectResult.Success)
         {
-            var loginResult = await networkProvider.Login(secretInputText, friendListProvider.FriendList);
+            // TODO: Do something
+
+            // Ideally at this point we can request a sync, and if the syncs are different
+            // then we can make a popup asking the user to select if they want what is local
+            // or what is stored on the server.
         }
     }
 }
