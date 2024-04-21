@@ -37,7 +37,7 @@ public struct CreateOrUpdateFriendResponse
 
     public override readonly string ToString()
     {
-        var sb = new AetherRemoteStringBuilder("BecomeCommandResponse");
+        var sb = new AetherRemoteStringBuilder("CreateOrUpdateFriendResponse");
         sb.AddVariable("Success", Success);
         sb.AddVariable("Message", Message);
         sb.AddVariable("Online", Online);

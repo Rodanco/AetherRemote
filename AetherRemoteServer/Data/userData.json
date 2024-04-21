@@ -1,6 +1,6 @@
 {
-  "testFriendSecret": {
-    "FriendCode": "",
+  "testSecret": {
+    "FriendCode": "TestFriendCode",
     "Friends": []
   }
 }

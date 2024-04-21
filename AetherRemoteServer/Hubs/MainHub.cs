@@ -1,4 +1,6 @@
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain.Network.CreateOrUpdateFriend;
+using AetherRemoteCommon.Domain.Network.DeleteFriend;
 using AetherRemoteCommon.Domain.Network.DownloadFriendList;
 using AetherRemoteCommon.Domain.Network.Login;
 using AetherRemoteCommon.Domain.Network.Sync;
@@ -7,17 +9,10 @@ using AetherRemoteServer.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace AetherRemoteServer.Hubs;
-//
+
 public class MainHub : Hub
 {
     public static readonly NetworkService NetworkService = new();
-
-    public override Task OnDisconnectedAsync(Exception? exception)
-    {
-        // Clean up the disconnected client
-        NetworkService.Logout(Context.ConnectionId);
-        return base.OnDisconnectedAsync(exception);
-    }
 
     [HubMethodName(Constants.ApiLogin)]
     public LoginResponse Login(LoginRequest request)
@@ -46,5 +41,26 @@ public class MainHub : Hub
     {
         var result = NetworkService.UpdateFriendList(request.Secret, request.FriendList);
         return new UploadFriendListResponse(result.Success, result.Message);
+    }
+
+    [HubMethodName(Constants.ApiCreateOrUpdateFriend)]
+    public CreateOrUpdateFriendResponse CreateOrUpdateFriend(CreateOrUpdateFriendRequest request)
+    {
+        var result = NetworkService.CreateOrUpdateFriend(request.Secret, request.Friend);
+        return new CreateOrUpdateFriendResponse(result.Success, result.Message);
+    }
+
+    [HubMethodName(Constants.ApiDeleteFriend)]
+    public DeleteFriendResponse DeleteFriend(DeleteFriendRequest request)
+    {
+        var result = NetworkService.DeleteFriend(request.Secret, request.FriendCode);
+        return new DeleteFriendResponse(result.Success, result.Message);
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        // Clean up the disconnected client
+        NetworkService.Logout(Context.ConnectionId);
+        return base.OnDisconnectedAsync(exception);
     }
 }

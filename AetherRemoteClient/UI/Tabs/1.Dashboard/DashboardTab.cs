@@ -32,24 +32,24 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
 
                 // TODO: Modify this code (everything with state) to use the new hybrid connection state
                 // which encapsulates both the SignalR connection and logging in.
-                var state = networkProvider.Connection.State;
+                var state = networkProvider.ConnectionState;
                 var color = state switch
                 {
-                    HubConnectionState.Connected => ImGuiColors.ParsedGreen,
-                    HubConnectionState.Disconnected => ImGuiColors.DPSRed,
+                    ServerConnectionState.Connected => ImGuiColors.ParsedGreen,
+                    ServerConnectionState.Disconnected => ImGuiColors.DPSRed,
                     _ => ImGuiColors.DalamudYellow,
                 };
 
                 SharedUserInterfaces.TextCentered(state.ToString(), color);
 
-                if (state == HubConnectionState.Connected)
+                if (state == ServerConnectionState.Connected)
                 {
                     SharedUserInterfaces.BigTextCentered("My Friend Code");
                     SharedUserInterfaces.BigTextCentered(networkProvider?.FriendCode ?? "");
                 }
                 else
                 {
-                    if (state == HubConnectionState.Connecting || state == HubConnectionState.Reconnecting)
+                    if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
                         ImGui.BeginDisabled();
 
                     var shouldLogin = false;
@@ -83,7 +83,7 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
                         shouldLogin = true;
                     }
 
-                    if (state == HubConnectionState.Connecting || state == HubConnectionState.Reconnecting)
+                    if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
                         ImGui.EndDisabled();
 
                     if (shouldLogin)
