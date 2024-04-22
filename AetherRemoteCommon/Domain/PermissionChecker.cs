@@ -19,6 +19,9 @@ public static class PermissionChecker
 
     public static bool HasSpeakPermission(ChatMode chatMode, FriendPermissions permissions)
     {
+        if (permissions.AllowSpeak == false)
+            return false;
+
         return chatMode switch
         {
             ChatMode.Alliance => permissions.AllowAlliance,

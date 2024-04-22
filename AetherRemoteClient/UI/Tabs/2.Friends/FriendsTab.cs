@@ -3,10 +3,10 @@ using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
 using Dalamud.Interface;
-using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -16,8 +16,8 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     SecretProvider secretProvider, IPluginLog logger) : ITab
 {
     // Constants
-    private const ImGuiTableFlags FriendListTableFlags =
-        ImGuiTableFlags.Borders;
+    private const ImGuiTableFlags FriendListTableFlags = ImGuiTableFlags.Borders;
+    private static readonly Vector2 RoundButtonSize = new(40, 40);
 
     // Dependencies
     private readonly FriendListProvider friendListProvider = friendListProvider;
@@ -46,6 +46,11 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     private Friend? friendBeingEditted = null;
 
     /// <summary>
+    /// A list of friends to be deleted at the end of the draw event
+    /// </summary>
+    private readonly List<Friend> friendsToDelete = [];
+
+    /// <summary>
     /// Threaded filter for searching your friend list
     /// </summary>
     private readonly ThreadedFilter<Friend> friendSearchFilter = new(friendListProvider.FriendList, FilterFriend);
@@ -54,16 +59,16 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     private string friendNote = string.Empty;
 
     private bool allowSpeak = false;
-    private bool allowSay = true;
-    private bool allowYell = true;
-    private bool allowShout = true;
-    private bool allowTell = true;
-    private bool allowParty = true;
-    private bool allowAlliance = true;
-    private bool allowFreeCompany = true;
-    private bool allowLinkshell = true;
-    private bool allowCrossworldLinkshell = true;
-    private bool allowPvPTeam = true;
+    private bool allowSay = false;
+    private bool allowYell = false;
+    private bool allowShout = false;
+    private bool allowTell = false;
+    private bool allowParty = false;
+    private bool allowAlliance = false;
+    private bool allowFreeCompany = false;
+    private bool allowLinkshell = false;
+    private bool allowCrossworldLinkshell = false;
+    private bool allowPvPTeam = false;
     
     private bool allowEmote = false;
 
@@ -128,6 +133,8 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
 
             ImGui.EndTabItem();
         }
+
+        DeleteFriendsStep();
     }
     
     private void DrawFriendList()
@@ -174,6 +181,21 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         else
         {
             SharedUserInterfaces.BigTextCentered($"Editing {friendBeingEdittedSnapshot.Value.FriendCode}");
+
+            ImGui.SameLine();
+            var deleteButtonPosition = ImGui.GetWindowSize() - ImGui.GetStyle().WindowPadding - RoundButtonSize;
+            ImGui.SetCursorPosX(deleteButtonPosition.X);
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Trash, RoundButtonSize) && friendBeingEditted != null)
+            {
+                friendsToDelete.Add(friendBeingEditted);
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Delete Friend");
+                ImGui.EndTooltip();
+            }
+
             ImGui.Separator();
 
             SharedUserInterfaces.TextCentered("Details");
@@ -256,11 +278,10 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
                 ImGui.EndTooltip();
             }
 
-            var saveButtonSize = new Vector2(40, 40);
-            var saveButtonPosition = ImGui.GetWindowSize() - saveButtonSize - (4 * ImGui.GetStyle().FramePadding);
+            var saveButtonPosition = ImGui.GetWindowSize() - ImGui.GetStyle().WindowPadding - RoundButtonSize;
             ImGui.SetCursorPos(saveButtonPosition);
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
-            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Save, saveButtonSize) && friendBeingEditted != null)
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Save, RoundButtonSize) && friendBeingEditted != null)
             {
                 friendBeingEditted.Note = friendNote == string.Empty ? null : friendNote;
                 friendBeingEditted.Preferences.AllowEmote = allowEmote;
@@ -280,8 +301,30 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
 
                 friendListProvider.Save();
             }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Save Friend");
+                ImGui.EndTooltip();
+            }
+
             ImGui.PopStyleVar();
         }
+    }
+
+    private void DeleteFriendsStep()
+    {
+        if (friendsToDelete.Count <= 0)
+            return;
+
+        foreach(var friendToDelete in friendsToDelete)
+        {
+            friendListProvider.RemoveFriend(friendToDelete.FriendCode);
+        }
+
+        friendBeingEditted = null;
+        friendsToDelete.Clear();
+        friendListProvider.Save();
     }
 
     private void AddFriendInInputText()

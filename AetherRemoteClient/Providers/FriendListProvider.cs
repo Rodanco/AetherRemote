@@ -45,6 +45,19 @@ public class FriendListProvider(DalamudPluginInterface pluginInterface)
         return friend;
     }
 
+    /// <summary>
+    /// Remove friend by friend code
+    /// </summary>
+    public bool RemoveFriend(string friendCode)
+    {
+        var index = FriendList.FindIndex(friend => friend.FriendCode == friendCode);
+        if (index < 0)
+            return false;
+
+        FriendList.RemoveAt(index);
+        return true;
+    }
+
     [Serializable]
     private class FriendListSave
     {

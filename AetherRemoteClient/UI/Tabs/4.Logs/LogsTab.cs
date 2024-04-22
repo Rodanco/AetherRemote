@@ -11,7 +11,6 @@ namespace AetherRemoteClient.UI.Experimental.Tabs.Logs;
 public class LogsTab : ITab
 {
     private readonly ThreadedFilter<LogEntry> threadedFilter = new(AetherRemoteLogging.Logs, FilterLogEntry);
-
     private string searchLogTerm = string.Empty;
 
     public void Draw()
