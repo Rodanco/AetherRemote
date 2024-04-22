@@ -18,6 +18,8 @@ public class LogsTab : ITab
     {
         if (ImGui.BeginTabItem("Logs"))
         {
+            var width = (ImGui.GetStyle().WindowPadding.X * 2) + ImGui.GetFontSize();
+            ImGui.SetNextItemWidth(-width);
             if (ImGui.InputTextWithHint("##SearchLog", "Search", ref searchLogTerm, 128))
             {
                 threadedFilter.Restart(searchLogTerm);

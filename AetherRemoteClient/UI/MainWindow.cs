@@ -60,7 +60,7 @@ public class MainWindow : Window
         if (ImGui.BeginTabBar("AetherRemoteMainTabBar"))
         {
             dashboardTab.Draw();
-            if (networkProvider.ConnectionState == ServerConnectionState.Connected)
+            if (Plugin.DeveloperMode || networkProvider.ConnectionState == ServerConnectionState.Connected)
             {
                 friendsTab.Draw();
                 sessionsTab.Draw();
