@@ -248,7 +248,7 @@ public class SessionsTab(
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
-                            ImGui.Text("Right click to remove friend from session");
+                            ImGui.Text("Click to remove friend from session");
                             ImGui.EndTooltip();
                         }
                     }
@@ -274,7 +274,6 @@ public class SessionsTab(
         var result = new List<Friend>();
         foreach(var friend in friendListProvider.FriendList)
         {
-            logger.Info("friend: " + friend);
             var containedInTargetFriends = currentSession.TargetFriends.Any(targetFriend => targetFriend.FriendCode == friend.FriendCode);
             if (!containedInTargetFriends)
                 result.Add(friend);

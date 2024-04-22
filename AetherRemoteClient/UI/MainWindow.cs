@@ -1,24 +1,33 @@
 using AetherRemoteClient.Accessors.Glamourer;
+using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
 using AetherRemoteClient.UI.Experimental.Tabs.Friends;
 using AetherRemoteClient.UI.Experimental.Tabs.Logs;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 using AetherRemoteClient.UI.Experimental.Tabs.Settings;
-using AetherRemoteClient.UI.Tabs;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI;
 
 public class MainWindow : Window
 {
+    // Constants
     private const ImGuiWindowFlags MainWindowFlags = ImGuiWindowFlags.None;
-    private readonly List<ITab> tabs;
+
+    // Injected
+    private readonly NetworkProvider networkProvider;
+
+    // Tabs
+    private readonly DashboardTab dashboardTab;
+    private readonly FriendsTab friendsTab;
+    private readonly SessionsTab sessionsTab;
+    private readonly LogsTab logsTab;
+    private readonly SettingsTab settingsTab;
 
     public MainWindow(
         Configuration configuration,
@@ -37,24 +46,27 @@ public class MainWindow : Window
             MaximumSize = ImGui.GetIO().DisplaySize,
         };
 
-        tabs =
-        [
-            new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider),
-            new FriendsTab(friendListProvider, networkProvider, secretProvider, logger),
-            new SessionsTab(glamourerAccessor, emoteProvider, friendListProvider, networkProvider, secretProvider, logger, targetManager),
-            new LogsTab(),
-            new SettingsTab(configuration)
-        ];
+        this.networkProvider = networkProvider;
+
+        dashboardTab = new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider);
+        friendsTab = new FriendsTab(friendListProvider, networkProvider, secretProvider, logger);
+        sessionsTab = new SessionsTab(glamourerAccessor, emoteProvider, friendListProvider, networkProvider, secretProvider, logger, targetManager);
+        logsTab = new LogsTab();
+        settingsTab = new SettingsTab(configuration);
     }
 
     public override void Draw()
     {
         if (ImGui.BeginTabBar("AetherRemoteMainTabBar"))
         {
-            foreach (var tab in tabs)
+            dashboardTab.Draw();
+            if (networkProvider.ConnectionState == ServerConnectionState.Connected)
             {
-                tab.Draw();
+                friendsTab.Draw();
+                sessionsTab.Draw();
+                logsTab.Draw();
             }
+            settingsTab.Draw();
 
             ImGui.EndTabBar();
         }
