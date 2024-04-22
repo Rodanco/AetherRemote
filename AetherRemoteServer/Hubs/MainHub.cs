@@ -1,8 +1,11 @@
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain.Network.Become;
 using AetherRemoteCommon.Domain.Network.CreateOrUpdateFriend;
 using AetherRemoteCommon.Domain.Network.DeleteFriend;
 using AetherRemoteCommon.Domain.Network.DownloadFriendList;
+using AetherRemoteCommon.Domain.Network.Emote;
 using AetherRemoteCommon.Domain.Network.Login;
+using AetherRemoteCommon.Domain.Network.Speak;
 using AetherRemoteCommon.Domain.Network.Sync;
 using AetherRemoteCommon.Domain.Network.UploadFriendList;
 using AetherRemoteServer.Services;
@@ -57,7 +60,26 @@ public class MainHub : Hub
         return new DeleteFriendResponse(result.Success, result.Message);
     }
 
-    // TODO: Add Emote, Speak, and Become commands + Filtering
+    [HubMethodName(Constants.ApiBecome)]
+    public BecomeResponse Become(BecomeRequest request)
+    {
+        var result = NetworkService.Become(request.Secret, request.TargetFriendCodes, request.GlamourerApplyType, request.GlamourerData, Clients);
+        return new BecomeResponse(result.Success, result.Message);
+    }
+
+    [HubMethodName(Constants.ApiEmote)]
+    public EmoteResponse Emote(EmoteRequest request)
+    {
+        var result = NetworkService.Emote(request.Secret, request.TargetFriendCodes, request.Emote, Clients);
+        return new EmoteResponse(result.Success, result.Message);
+    }
+
+    [HubMethodName(Constants.ApiSpeak)]
+    public SpeakResponse Speak(SpeakRequest request)
+    {
+        var result = NetworkService.Speak(request.Secret, request.TargetFriendCodes, request.Message, request.ChatMode, request.Extra, Clients);
+        return new SpeakResponse(result.Success, result.Message);
+    }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {

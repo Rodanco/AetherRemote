@@ -23,9 +23,14 @@ public sealed class Plugin : IDalamudPlugin
     public static readonly bool DeveloperMode = false;
 
     /// <summary>
+    /// Internal plugin stage
+    /// </summary>
+    public static readonly string Stage = "Alpha";
+
+    /// <summary>
     /// Internal plugin version
     /// </summary>
-    public static readonly string Version = "1.0.0.0";
+    public static readonly string Version = "1.0.1.7";
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }

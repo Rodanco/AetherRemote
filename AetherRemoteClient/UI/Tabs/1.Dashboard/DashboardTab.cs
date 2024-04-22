@@ -4,7 +4,6 @@ using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
-using Microsoft.AspNetCore.SignalR.Client;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
@@ -28,7 +27,7 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
             if (ImGui.BeginChild("DashboardArea", Vector2.Zero, true))
             {
                 SharedUserInterfaces.BigTextCentered("Aether Remote", ImGuiColors.ParsedOrange);
-                SharedUserInterfaces.MediumTextCentered("Version 1.0.0.0");
+                SharedUserInterfaces.MediumTextCentered($"{Plugin.Stage} V{Plugin.Version}");
 
                 // TODO: Modify this code (everything with state) to use the new hybrid connection state
                 // which encapsulates both the SignalR connection and logging in.
