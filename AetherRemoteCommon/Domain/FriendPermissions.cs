@@ -1,9 +1,9 @@
 using System.Text;
 
-namespace AetherRemoteCommon.Domain.CommonFriendPreferences;
+namespace AetherRemoteCommon.Domain.CommonFriendPermissions;
 
 [Serializable]
-public class FriendPreferences
+public class FriendPermissions
 {
     public bool AllowSpeak = true;
     public bool AllowEmote = true;
@@ -22,6 +22,7 @@ public class FriendPreferences
 
     public override string ToString()
     {
+        // TODO: Update to AetherRemoteStringBuilder
         var sb = new StringBuilder();
         sb.Append("FriendPreferences[");
         sb.Append("AllowSpeak = ");

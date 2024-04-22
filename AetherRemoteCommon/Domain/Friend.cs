@@ -1,4 +1,4 @@
-using AetherRemoteCommon.Domain.CommonFriendPreferences;
+using AetherRemoteCommon.Domain.CommonFriendPermissions;
 
 namespace AetherRemoteCommon.Domain.CommonFriend;
 
@@ -19,24 +19,24 @@ public class Friend
     /// <summary>
     /// Friend preferences
     /// </summary>
-    public FriendPreferences Preferences { get; set; }
+    public FriendPermissions Permissions { get; set; }
 
     public Friend()
     {
         FriendCode = string.Empty;
         Note = null;
-        Preferences = new();
+        Permissions = new();
     }
 
-    public Friend(string friendCode, string? note = null, FriendPreferences? preferences = null)
+    public Friend(string friendCode, string? note = null, FriendPermissions? preferences = null)
     {
         FriendCode = friendCode;
         Note = note;
-        Preferences = preferences ?? new();
+        Permissions = preferences ?? new();
     }
 
     public override string ToString()
     {
-        return $"CommonFriend[FriendCode={FriendCode}, Note={Note}, Preferences={Preferences}]";
+        return $"CommonFriend[FriendCode={FriendCode}, Note={Note}, Preferences={Permissions}]";
     }
 }

@@ -51,8 +51,8 @@ public class GlamourerAccessor : IDisposable
         var operation = applyType switch
         {
             GlamourerApplyType.CustomizationAndEquipment => glamourerApplyAll,
-            GlamourerApplyType.CustomizationOnly => glamourerApplyOnlyCustomization,
-            GlamourerApplyType.EquipmentOnly => glamourerApplyOnlyEquipment,
+            GlamourerApplyType.Customization => glamourerApplyOnlyCustomization,
+            GlamourerApplyType.Equipment => glamourerApplyOnlyEquipment,
             _ => glamourerApplyAll
         };
 
@@ -102,8 +102,8 @@ public class GlamourerAccessor : IDisposable
         {
             (true, true) => GlamourerApplyType.CustomizationAndEquipment,
             (false, false) => GlamourerApplyType.CustomizationAndEquipment,
-            (true, false) => GlamourerApplyType.EquipmentOnly,
-            (false, true) => GlamourerApplyType.CustomizationOnly,
+            (true, false) => GlamourerApplyType.Equipment,
+            (false, true) => GlamourerApplyType.Customization,
         };
     }
 

@@ -9,13 +9,13 @@ public static class FriendTranslator
         var translated = new AetherRemoteCommon.Domain.CommonFriend.Friend();
         translated.FriendCode = friend.FriendCode;
         translated.Note = friend.Note;
-        translated.Preferences = friend.Preferences;
+        translated.Permissions = friend.Preferences;
         return translated;
     }
 
     public static Friend CommonToDomain(AetherRemoteCommon.Domain.CommonFriend.Friend friend)
     {
-        return new Friend(friend.FriendCode, friend.Note, friend.Preferences);
+        return new Friend(friend.FriendCode, friend.Note, friend.Permissions);
     }
 
     public static List<AetherRemoteCommon.Domain.CommonFriend.Friend> DomainFriendListToCommon(List<Friend> friends)

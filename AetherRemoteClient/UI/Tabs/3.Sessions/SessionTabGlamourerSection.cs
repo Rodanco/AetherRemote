@@ -113,11 +113,11 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
             sb.Append(currentSession.TargetFriendsAsList());
             switch (glamourerApplyType)
             {
-                case GlamourerApplyType.EquipmentOnly:
+                case GlamourerApplyType.Equipment:
                     sb.Append(" wear this outfit: [");
                     break;
 
-                case GlamourerApplyType.CustomizationOnly:
+                case GlamourerApplyType.Customization:
                     sb.Append(" transform into this person: [");
                     break;
 

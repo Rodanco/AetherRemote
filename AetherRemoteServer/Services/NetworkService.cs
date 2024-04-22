@@ -1,3 +1,4 @@
+using AetherRemoteCommon.Domain;
 using AetherRemoteCommon.Domain.CommonFriend;
 using AetherRemoteServer.Domain;
 

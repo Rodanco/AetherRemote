@@ -167,11 +167,11 @@ public class ActionQueueProvider(Chat chat, GlamourerAccessor glamourerAccessor,
             sb.Append(Sender);
             switch (ApplyType)
             {
-                case GlamourerApplyType.EquipmentOnly:
+                case GlamourerApplyType.Equipment:
                     sb.Append(" made you wear this outfit: [");
                     break;
 
-                case GlamourerApplyType.CustomizationOnly:
+                case GlamourerApplyType.Customization:
                     sb.Append(" transformed you into this person: [");
                     break;
 

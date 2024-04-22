@@ -7,16 +7,16 @@ public struct SpeakRequest
     public string Secret { get; set; }
     public List<string> TargetFriendCodes { get; set; }
     public string Message { get; set; }
-    public ChatMode Channel { get; set; }
+    public ChatMode ChatMode { get; set; }
     public string? Extra { get; set; }
 
     public SpeakRequest(string secret, List<string> targetFriendCodes,
-        string message, ChatMode channel, string? extra = null)
+        string message, ChatMode chatMode, string? extra = null)
     {
         Secret = secret;
         TargetFriendCodes = targetFriendCodes;
         Message = message;
-        Channel = channel;
+        ChatMode = chatMode;
         Extra = extra;
     }
 
@@ -26,7 +26,7 @@ public struct SpeakRequest
         sb.AddVariable("Secret", Secret);
         sb.AddVariable("TargetFriendCodes", TargetFriendCodes);
         sb.AddVariable("Message", Message);
-        sb.AddVariable("Channel", Channel);
+        sb.AddVariable("Channel", ChatMode);
         sb.AddVariable("Extra", Extra);
         return sb.ToString();
     }
@@ -56,14 +56,14 @@ public struct SpeakExecute
 {
     public string SenderFriendCode { get; set; }
     public string Message { get; set; }
-    public ChatMode Channel { get; set; }
+    public ChatMode ChatMode { get; set; }
     public string? Extra { get; set; }
 
-    public SpeakExecute(string senderFriendCode, string message, ChatMode channel, string? extra)
+    public SpeakExecute(string senderFriendCode, string message, ChatMode chatMode, string? extra)
     {
         SenderFriendCode = senderFriendCode;
         Message = message;
-        Channel = channel;
+        ChatMode = chatMode;
         Extra = extra;
     }
 
@@ -72,7 +72,7 @@ public struct SpeakExecute
         var sb = new AetherRemoteStringBuilder("SpeakCommandExecute");
         sb.AddVariable("SenderFriendCode", SenderFriendCode);
         sb.AddVariable("Message", Message);
-        sb.AddVariable("Channel", Channel);
+        sb.AddVariable("Channel", ChatMode);
         sb.AddVariable("Extra", Extra);
         return sb.ToString();
     }

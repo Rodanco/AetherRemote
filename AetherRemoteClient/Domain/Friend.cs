@@ -1,10 +1,10 @@
-using AetherRemoteCommon.Domain.CommonFriendPreferences;
+using AetherRemoteCommon.Domain.CommonFriendPermissions;
 using System;
 
 namespace AetherRemoteClient.Domain;
 
 [Serializable]
-public class Friend(string id, string? note = null, FriendPreferences? preferences = null)
+public class Friend(string id, string? note = null, FriendPermissions? preferences = null)
 {
     /// <summary>
     /// Id of the friend (UserId)
@@ -19,7 +19,7 @@ public class Friend(string id, string? note = null, FriendPreferences? preferenc
     /// <summary>
     /// Friend preferences
     /// </summary>
-    public FriendPreferences Preferences = preferences ?? new();
+    public FriendPermissions Preferences = preferences ?? new();
 
     /// <summary>
     /// Returns a friend's given note, or their id

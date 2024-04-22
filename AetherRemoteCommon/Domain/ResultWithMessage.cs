@@ -1,4 +1,4 @@
-namespace AetherRemoteServer.Domain;
+namespace AetherRemoteCommon.Domain;
 
 public class ResultWithMessage
 {

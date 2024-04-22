@@ -1,5 +1,6 @@
 using AetherRemoteClient.Providers;
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain;
 using AetherRemoteCommon.Domain.Network.Become;
 using AetherRemoteCommon.Domain.Network.Emote;
 using AetherRemoteCommon.Domain.Network.Speak;
@@ -42,23 +43,39 @@ public class NetworkListener
 
     public void HandleBecome(BecomeExecute execute)
     {
-        var validFriend = friendListProvider.FriendList.Any(friend => friend.FriendCode == execute.SenderFriendCode);
-        if (validFriend == false)
+        var validFriend = friendListProvider.FriendList.FirstOrDefault(friend => friend.FriendCode == execute.SenderFriendCode);
+        if (validFriend == null)
         {
             var message = $"Filtered out \'Become\' command from {execute.SenderFriendCode} who is not on your friend list";
             AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
             return;
         }
-            
+
+        var hasPermission = PermissionChecker.HasGlamourerPermission(execute.GlamourerApplyType, validFriend.Preferences);
+        if (hasPermission == false)
+        {
+            var message = $"Filtered out \'Become\' command from {execute.SenderFriendCode} who does not have {execute.GlamourerApplyType} permissions";
+            AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
+            return;
+        }
+        
         actionQueueProvider.EnqueueBecomeAction(execute.SenderFriendCode, execute.GlamourerData, execute.GlamourerApplyType);
     }
 
     public void HandleEmote(EmoteExecute execute)
     {
-        var validFriend = friendListProvider.FriendList.Any(friend => friend.FriendCode == execute.SenderFriendCode);
-        if (validFriend == false)
+        var validFriend = friendListProvider.FriendList.FirstOrDefault(friend => friend.FriendCode == execute.SenderFriendCode);
+        if (validFriend == null)
         {
             var message = $"Filtered out \'Emote\' command from {execute.SenderFriendCode} who is not on your friend list";
+            AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
+            return;
+        }
+
+        var hasPermission = PermissionChecker.HasEmotePermission(validFriend.Preferences);
+        if (hasPermission == false)
+        {
+            var message = $"Filtered out \'Emote\' command from {execute.SenderFriendCode} who does not have Emote permissions";
             AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
             return;
         }
@@ -76,10 +93,18 @@ public class NetworkListener
 
     public void HandleSpeak(SpeakExecute execute)
     {
-        var validFriend = friendListProvider.FriendList.Any(friend => friend.FriendCode == execute.SenderFriendCode);
-        if (validFriend == false)
+        var validFriend = friendListProvider.FriendList.FirstOrDefault(friend => friend.FriendCode == execute.SenderFriendCode);
+        if (validFriend == null)
         {
             var message = $"Filtered out \'Speak\' command from {execute.SenderFriendCode} who is not on your friend list";
+            AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
+            return;
+        }
+
+        var hasPermission = PermissionChecker.HasSpeakPermission(execute.ChatMode, validFriend.Preferences);
+        if (hasPermission == false)
+        {
+            var message = $"Filtered out \'Speak\' command from {execute.SenderFriendCode} who does not have {execute.ChatMode} permissions";
             AetherRemoteLogging.Log(execute.SenderFriendCode, message, DateTime.Now, LogType.Error);
             return;
         }
@@ -88,6 +113,6 @@ public class NetworkListener
         // is something that has been on my mind. Ideally, a toggleable 'safe mode' should
         // be implemented where undesired language can be filtered out.
 
-        actionQueueProvider.EnqueueSpeakAction(execute.SenderFriendCode, execute.Message, execute.Channel, execute.Extra);
-    }
+        actionQueueProvider.EnqueueSpeakAction(execute.SenderFriendCode, execute.Message, execute.ChatMode, execute.Extra);
+    } 
 }

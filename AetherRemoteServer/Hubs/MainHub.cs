@@ -57,6 +57,8 @@ public class MainHub : Hub
         return new DeleteFriendResponse(result.Success, result.Message);
     }
 
+    // TODO: Add Emote, Speak, and Become commands + Filtering
+
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         // Clean up the disconnected client
