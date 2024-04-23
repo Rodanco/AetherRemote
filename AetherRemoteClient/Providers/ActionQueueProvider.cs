@@ -79,8 +79,8 @@ public class ActionQueueProvider(Chat chat, GlamourerAccessor glamourerAccessor,
 
     private abstract class ActionQueue<T>(IPluginLog logger, IClientState clientState)
     {
-        protected virtual int MinProcessTime { get; set; } = 1000;
-        protected virtual int MaxProcessTime { get; set; } = 3000;
+        protected virtual int MinProcessTime { get; set; } = 6000;
+        protected virtual int MaxProcessTime { get; set; } = 10000;
 
         private readonly IPluginLog logger = logger;
         private readonly IClientState clientState = clientState;

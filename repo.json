@@ -11,16 +11,17 @@
       "control",
       "speech",
       "emotes",
-      "glamourer"
+      "glamourer",
+      "mare"
     ],
     "DalamudApiLevel": 9,
     "LoadPriority": 0,
-    "IconUrl": "https://i.redd.it/7vw6dtzvw3jb1.jpg",
+    "IconUrl": "https://i.imgur.com/4ZdWnU5.jpeg",
     "Punchline": "Controlling all of the world!",
     "IsHide": "False",
     "IsTestingExclusive": "False",
-    "DownloadLinkInstall": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.1/latest.zip",
-    "DownloadLinkTesting": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.1/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/aetherremote/AetherRemote/releases/download/v1.0.1/latest.zip"
+    "DownloadLinkInstall": "https://github.com/aetherremote/AetherRemote/releases/download/Alpha1.0.1.7/latest.zip",
+    "DownloadLinkTesting": "https://github.com/aetherremote/AetherRemote/releases/download/Alpha1.0.1.7/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/aetherremote/AetherRemote/releases/download/Alpha1.0.1.7/latest.zip"
   }
 ]
