@@ -5,6 +5,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -19,6 +20,8 @@ public class SharedUserInterfaces
         ImGuiWindowFlags.NoTitleBar |
         ImGuiWindowFlags.NoMove |
         ImGuiWindowFlags.NoResize;
+
+    private static readonly ImGuiWindowFlags ComboWithFilterFlags = PopupWindowFlags | ImGuiWindowFlags.ChildWindow;
 
     private readonly DalamudPluginInterface pluginInterface;
     private readonly IPluginLog logger;
@@ -240,6 +243,8 @@ public class SharedUserInterfaces
     /// <summary>
     /// Input text with searchable list.
     /// </summary>
+
+    [Obsolete("Use ComboWithFilter instead")]
     public static void ComboFilter(
         string id,
         ref string selectedString,
@@ -287,6 +292,45 @@ public class SharedUserInterfaces
             {
                 ImGui.CloseCurrentPopup();
             }
+
+            ImGui.EndPopup();
+        }
+    }
+
+    public static void ComboWithFilter(ref string choice, string hint, ListFilter<string> filterHelper,
+        string? id = null, ImGuiWindowFlags? flags = null)
+    {
+        var comboFilterFlags = flags ?? ComboWithFilterFlags;
+        var comboFilterId = id == null ? "##ComboFilter" : $"##{id}-ComboFilter";
+        var popupName = id == null ? "##ComboFilterPopup" : $"##{id}-ComboFilterPopup";
+
+        var _sizeX = 200;
+        var _sizeY = (20 * Math.Min(filterHelper.List.Count, 10)) + ImGui.GetStyle().WindowPadding.Y;
+
+        ImGui.SetNextItemWidth(_sizeX);
+        if (ImGui.InputTextWithHint(comboFilterId, hint, ref choice, 100))
+            filterHelper.UpdateSearchTerm(choice);
+
+        var isInputTextActive = ImGui.IsItemActive();
+        var isInputTextActivated = ImGui.IsItemActivated();
+        if (isInputTextActivated && ImGui.IsPopupOpen(popupName) == false)
+            ImGui.OpenPopup(popupName);
+
+        var _x = ImGui.GetItemRectMin().X;
+        var _y = ImGui.GetCursorPosY() + ImGui.GetWindowPos().Y;
+        ImGui.SetNextWindowPos(new Vector2(_x, _y));
+        ImGui.SetNextWindowSize(new Vector2(_sizeX, _sizeY));
+
+        if (ImGui.BeginPopup(popupName, comboFilterFlags))
+        {
+            foreach (var option in filterHelper.List)
+            {
+                if (ImGui.Selectable(option))
+                    choice = option;
+            }
+
+            if (isInputTextActive == false && ImGui.IsWindowFocused() == false)
+                ImGui.CloseCurrentPopup();
 
             ImGui.EndPopup();
         }
