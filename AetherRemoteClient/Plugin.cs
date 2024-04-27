@@ -20,7 +20,7 @@ public sealed class Plugin : IDalamudPlugin
     /// Disables interacting with the server in any way, and returns mocked successes and the line when
     /// the server is invoked.
     /// </summary>
-    public static readonly bool DeveloperMode = false;
+    public static readonly bool DeveloperMode = true;
 
     /// <summary>
     /// Internal plugin stage
@@ -98,7 +98,7 @@ public sealed class Plugin : IDalamudPlugin
 
         // Windows
         mainWindow = new MainWindow(configuration, emoteProvider, friendListProvider, glamourerAccessor, 
-            networkProvider, secretProvider, logger, targetManager);
+            networkProvider, secretProvider, clientState, logger, targetManager);
 
         windowSystem.AddWindow(mainWindow);
 

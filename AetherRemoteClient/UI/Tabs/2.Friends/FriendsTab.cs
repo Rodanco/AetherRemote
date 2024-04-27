@@ -26,11 +26,6 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     private readonly IPluginLog logger = logger;
 
     /// <summary>
-    /// Used to calculate the size of the friend list child window
-    /// </summary>
-    private float friendListAreaSize = -1;
-
-    /// <summary>
     /// The string being referenced by the friend code input text
     /// </summary>
     private string friendCodeAddFriendInputText = "";
@@ -83,12 +78,9 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         // The height of the footer containing the friend code input text and the add friend button
         var footerHeight = (ImGui.CalcTextSize("Add Friend").Y + (style.FramePadding.Y * 2) + style.ItemSpacing.Y) * 2;
 
-        // Keep the area dynamically scaleable with the window width
-        friendListAreaSize = ImGui.GetWindowWidth() * 0.25f;
-
         if (ImGui.BeginTabItem("Friends"))
         {
-            ImGui.SetNextItemWidth(friendListAreaSize);
+            ImGui.SetNextItemWidth(MainWindow.FriendListSize.X);
             if (ImGui.InputTextWithHint("##SearchFriendListInputText", "Search", ref friendCodeSearchInputText, Constants.FriendNicknameCharLimit))
             {
                 friendSearchFilter.Restart(friendCodeSearchInputText);
@@ -112,7 +104,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 
             // By setting the Y value as negative, the window will be that many pixels up from the bottom
-            if (ImGui.BeginChild("FriendListArea", new Vector2(friendListAreaSize, -1 * footerHeight), true))
+            if (ImGui.BeginChild("FriendListArea", new Vector2(MainWindow.FriendListSize.X, -1 * footerHeight), true))
             {
                 DrawFriendList();
                 ImGui.EndChild();
@@ -120,13 +112,13 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
 
             ImGui.PopStyleVar();
 
-            ImGui.SetNextItemWidth(friendListAreaSize);
+            ImGui.SetNextItemWidth(MainWindow.FriendListSize.X);
             if (ImGui.InputTextWithHint("##FriendCodeInputText", "Friend Code", ref friendCodeAddFriendInputText, Constants.FriendCodeCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 AddFriendInInputText();
             }
 
-            if (ImGui.Button("Add Friend", new Vector2(friendListAreaSize, 0)))
+            if (ImGui.Button("Add Friend", MainWindow.FriendListSize))
             {
                 AddFriendInInputText();
             }
@@ -200,7 +192,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
 
             SharedUserInterfaces.TextCentered("Details");
 
-            ImGui.SetNextItemWidth(friendListAreaSize);
+            ImGui.SetNextItemWidth(MainWindow.FriendListSize.X);
             ImGui.InputTextWithHint("Note##EditingFriendCode", "Note", ref friendNote, Constants.FriendCodeCharLimit);
             ImGui.SameLine();
             SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
