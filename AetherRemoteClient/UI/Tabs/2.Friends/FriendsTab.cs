@@ -2,6 +2,7 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
+using AetherRemoteCommon.Domain.CommonFriendPermissions;
 using Dalamud.Interface;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
@@ -18,6 +19,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     // Constants
     private const ImGuiTableFlags FriendListTableFlags = ImGuiTableFlags.Borders;
     private static readonly Vector2 RoundButtonSize = new(40, 40);
+    private static readonly Vector2 SmallButtonSize = new(24, 0);
 
     // Dependencies
     private readonly FriendListProvider friendListProvider = friendListProvider;
@@ -50,9 +52,10 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     /// </summary>
     private readonly ThreadedFilter<Friend> friendSearchFilter = new(friendListProvider.FriendList, FilterFriend);
 
-    // Collection of permissions
+    // Friend being edit's note
     private string friendNote = string.Empty;
 
+    // Permissions - Speak
     private bool allowSpeak = false;
     private bool allowSay = false;
     private bool allowYell = false;
@@ -64,9 +67,11 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     private bool allowLinkshell = false;
     private bool allowCrossworldLinkshell = false;
     private bool allowPvPTeam = false;
-    
+
+    // Permissions - Emote
     private bool allowEmote = false;
 
+    // Permissions - Glamourer
     private bool allowChangeAppearance = false;
     private bool allowChangeEquipment = false;
 
@@ -177,10 +182,12 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             ImGui.SameLine();
             var deleteButtonPosition = ImGui.GetWindowSize() - ImGui.GetStyle().WindowPadding - RoundButtonSize;
             ImGui.SetCursorPosX(deleteButtonPosition.X);
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
             if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Trash, RoundButtonSize) && friendBeingEditted != null)
             {
                 friendsToDelete.Add(friendBeingEditted);
             }
+            ImGui.PopStyleVar();
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
@@ -213,6 +220,31 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             {
                 ImGui.BeginTooltip();
                 ImGui.Text("Allow friend to force you to say things in chat");
+                ImGui.EndTooltip();
+            }
+
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetWindowSize().X - (ImGui.GetStyle().WindowPadding.X * 2) - (SmallButtonSize.X * 2));
+
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Check, SmallButtonSize))
+                SetAllSpeakPermissions(true);
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Allow All");
+                ImGui.EndTooltip();
+            }
+
+            ImGui.SameLine();
+
+            if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Ban, SmallButtonSize))
+                SetAllSpeakPermissions(false);
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Disallow All");
                 ImGui.EndTooltip();
             }
 
@@ -327,7 +359,9 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         var addFriendResult = friendListProvider.AddFriend(friendCodeAddFriendInputText);
         if (addFriendResult == null)
             return;
-
+        
+        // Clear textbox
+        friendCodeAddFriendInputText = "";
         Task.Run(() => networkProvider.CreateOrUpdateFriend(secretProvider.Secret, addFriendResult));
     }
 
@@ -350,6 +384,21 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         allowLinkshell = friend.Preferences.AllowLinkshell;
         allowCrossworldLinkshell = friend.Preferences.AllowCrossworldLinkshell;
         allowPvPTeam = friend.Preferences.AllowPvPTeam;
+    }
+
+    private void SetAllSpeakPermissions(bool enabled)
+    {
+        allowSpeak = enabled;
+        allowSay = enabled;
+        allowYell = enabled;
+        allowShout = enabled;
+        allowTell = enabled;
+        allowParty = enabled;
+        allowAlliance = enabled;
+        allowFreeCompany = enabled;
+        allowPvPTeam = enabled;
+        allowLinkshell = enabled;
+        allowCrossworldLinkshell = enabled;
     }
 
     private static bool FilterFriend(Friend friend, string searchTerm)
