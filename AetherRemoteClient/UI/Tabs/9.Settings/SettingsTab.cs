@@ -1,9 +1,8 @@
 using AetherRemoteClient.Domain;
-using AetherRemoteClient.UI.Tabs;
 using ImGuiNET;
 using System.Numerics;
 
-namespace AetherRemoteClient.UI.Experimental.Tabs.Settings;
+namespace AetherRemoteClient.UI.Tabs.Settings;
 
 public class SettingsTab(Configuration configuration) : ITab
 {

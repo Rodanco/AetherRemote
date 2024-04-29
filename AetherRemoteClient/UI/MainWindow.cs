@@ -1,13 +1,13 @@
 using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
-using AetherRemoteClient.UI.Experimental.Tabs.Friends;
-using AetherRemoteClient.UI.Experimental.Tabs.Logs;
 using AetherRemoteClient.UI.Experimental.Tabs.Sessions;
-using AetherRemoteClient.UI.Experimental.Tabs.Settings;
 using AetherRemoteClient.UI.Tabs.Control;
+using AetherRemoteClient.UI.Tabs.Dashboard;
+using AetherRemoteClient.UI.Tabs.Friends;
+using AetherRemoteClient.UI.Tabs.Logs;
 using AetherRemoteClient.UI.Tabs.MassControl;
+using AetherRemoteClient.UI.Tabs.Settings;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
@@ -30,7 +30,6 @@ public class MainWindow : Window
     // Tabs
     private readonly DashboardTab dashboardTab;
     private readonly FriendsTab friendsTab;
-    private readonly SessionsTab sessionsTab;
     private readonly LogsTab logsTab;
     private readonly SettingsTab settingsTab;
     private readonly ControlTab controlTab;
@@ -58,7 +57,6 @@ public class MainWindow : Window
 
         dashboardTab = new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider);
         friendsTab = new FriendsTab(friendListProvider, networkProvider, secretProvider, logger);
-        sessionsTab = new SessionsTab(glamourerAccessor, emoteProvider, friendListProvider, networkProvider, secretProvider, logger, targetManager);
         logsTab = new LogsTab();
         settingsTab = new SettingsTab(configuration);
         controlTab = new ControlTab(glamourerAccessor, emoteProvider, friendListProvider, networkProvider, secretProvider, clientState, logger, targetManager);
@@ -75,7 +73,6 @@ public class MainWindow : Window
                 friendsTab.Draw();
                 controlTab.Draw();
                 massControlTab.Draw();
-                sessionsTab.Draw();
                 logsTab.Draw();
             }
             settingsTab.Draw();

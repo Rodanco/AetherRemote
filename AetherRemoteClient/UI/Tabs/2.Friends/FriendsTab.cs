@@ -1,6 +1,5 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -10,9 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
-using System.Timers;
 
-namespace AetherRemoteClient.UI.Experimental.Tabs.Friends;
+namespace AetherRemoteClient.UI.Tabs.Friends;
 
 public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider, IPluginLog logger) : ITab
 {

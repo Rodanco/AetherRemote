@@ -1,12 +1,11 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System.Numerics;
 
-namespace AetherRemoteClient.UI.Experimental.Tabs.Dashboard;
+namespace AetherRemoteClient.UI.Tabs.Dashboard;
 
 public class DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider) : ITab
 {

@@ -38,11 +38,6 @@ public class Friend(string id, string? note = null, FriendPermissions? permissio
     [NonSerialized]
     public bool Selected = false;
 
-    public Friend Copy()
-    {
-        return new Friend(FriendCode, Note, Permissions);
-    }
-
     public override string ToString()
     {
         return $"Friend[FriendCode={FriendCode}, Note={Note}, Preferences={Permissions}]";

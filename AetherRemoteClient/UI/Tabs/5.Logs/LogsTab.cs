@@ -1,12 +1,11 @@
 using AetherRemoteClient.Domain;
-using AetherRemoteClient.UI.Tabs;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System;
 using System.Numerics;
 
-namespace AetherRemoteClient.UI.Experimental.Tabs.Logs;
+namespace AetherRemoteClient.UI.Tabs.Logs;
 
 public class LogsTab : ITab
 {
