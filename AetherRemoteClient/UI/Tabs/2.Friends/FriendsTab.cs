@@ -2,19 +2,19 @@ using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
 using AetherRemoteClient.UI.Tabs;
 using AetherRemoteCommon;
-using AetherRemoteCommon.Domain.CommonFriendPermissions;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace AetherRemoteClient.UI.Experimental.Tabs.Friends;
 
-public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider networkProvider,
-    SecretProvider secretProvider, IPluginLog logger) : ITab
+public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider, IPluginLog logger) : ITab
 {
     // Constants
     private const ImGuiTableFlags FriendListTableFlags = ImGuiTableFlags.Borders;
@@ -50,7 +50,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
     /// <summary>
     /// Threaded filter for searching your friend list
     /// </summary>
-    private readonly ThreadedFilter<Friend> friendSearchFilter = new(friendListProvider.FriendList, FilterFriend);
+    private readonly ListFilter<Friend> friendSearchFilter = new(friendListProvider.FriendList, FilterFriend);
 
     // Friend being edit's note
     private string friendNote = string.Empty;
@@ -87,9 +87,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         {
             ImGui.SetNextItemWidth(MainWindow.FriendListSize.X);
             if (ImGui.InputTextWithHint("##SearchFriendListInputText", "Search", ref friendCodeSearchInputText, Constants.FriendNicknameCharLimit))
-            {
-                friendSearchFilter.Restart(friendCodeSearchInputText);
-            }
+                friendSearchFilter.UpdateSearchTerm(friendCodeSearchInputText);
 
             // Save the cursor at the bottom of the search input text before calling ImGui.SameLine for use later
             var bottomOfSearchInputText = ImGui.GetCursorPosY();
@@ -307,29 +305,19 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
             if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Save, RoundButtonSize) && friendBeingEditted != null)
             {
-                friendBeingEditted.Note = friendNote == string.Empty ? null : friendNote;
-                friendBeingEditted.Preferences.AllowEmote = allowEmote;
-                friendBeingEditted.Preferences.AllowSpeak = allowSpeak;
-                friendBeingEditted.Preferences.AllowChangeAppearance = allowChangeAppearance;
-                friendBeingEditted.Preferences.AllowChangeEquipment = allowChangeEquipment;
-                friendBeingEditted.Preferences.AllowSay = allowSay;
-                friendBeingEditted.Preferences.AllowYell = allowYell;
-                friendBeingEditted.Preferences.AllowShout = allowShout;
-                friendBeingEditted.Preferences.AllowTell = allowTell;
-                friendBeingEditted.Preferences.AllowParty = allowParty;
-                friendBeingEditted.Preferences.AllowAlliance = allowAlliance;
-                friendBeingEditted.Preferences.AllowFreeCompany = allowFreeCompany;
-                friendBeingEditted.Preferences.AllowLinkshell = allowLinkshell;
-                friendBeingEditted.Preferences.AllowCrossworldLinkshell = allowCrossworldLinkshell;
-                friendBeingEditted.Preferences.AllowPvPTeam = allowPvPTeam;
-
-                friendListProvider.Save();
+                SaveFriend();
             }
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
                 ImGui.Text("Save Friend");
                 ImGui.EndTooltip();
+            }
+
+            if (PendingChanges())
+            {
+                ImGui.SetCursorPosY(ImGui.GetWindowHeight() - ImGui.GetFontSize() - ImGui.GetStyle().WindowPadding.Y);
+                SharedUserInterfaces.TextCentered("You have pending changes!", ImGuiColors.DalamudOrange);
             }
 
             ImGui.PopStyleVar();
@@ -370,20 +358,44 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         friendBeingEditted = friend;
 
         friendNote = friend.Note ?? string.Empty;
-        allowSpeak = friend.Preferences.AllowSpeak;
-        allowEmote = friend.Preferences.AllowEmote;
-        allowChangeAppearance = friend.Preferences.AllowChangeAppearance;
-        allowChangeEquipment = friend.Preferences.AllowChangeEquipment;
-        allowSay = friend.Preferences.AllowSay;
-        allowYell = friend.Preferences.AllowYell;
-        allowShout = friend.Preferences.AllowShout;
-        allowTell = friend.Preferences.AllowTell;
-        allowParty = friend.Preferences.AllowParty;
-        allowAlliance = friend.Preferences.AllowAlliance;
-        allowFreeCompany = friend.Preferences.AllowFreeCompany;
-        allowLinkshell = friend.Preferences.AllowLinkshell;
-        allowCrossworldLinkshell = friend.Preferences.AllowCrossworldLinkshell;
-        allowPvPTeam = friend.Preferences.AllowPvPTeam;
+        allowSpeak = friend.Permissions.AllowSpeak;
+        allowEmote = friend.Permissions.AllowEmote;
+        allowChangeAppearance = friend.Permissions.AllowChangeAppearance;
+        allowChangeEquipment = friend.Permissions.AllowChangeEquipment;
+        allowSay = friend.Permissions.AllowSay;
+        allowYell = friend.Permissions.AllowYell;
+        allowShout = friend.Permissions.AllowShout;
+        allowTell = friend.Permissions.AllowTell;
+        allowParty = friend.Permissions.AllowParty;
+        allowAlliance = friend.Permissions.AllowAlliance;
+        allowFreeCompany = friend.Permissions.AllowFreeCompany;
+        allowLinkshell = friend.Permissions.AllowLinkshell;
+        allowCrossworldLinkshell = friend.Permissions.AllowCrossworldLinkshell;
+        allowPvPTeam = friend.Permissions.AllowPvPTeam;
+    }
+
+    private void SaveFriend()
+    {
+        if (friendBeingEditted == null)
+            return;
+
+        friendBeingEditted.Note = friendNote == string.Empty ? null : friendNote;
+        friendBeingEditted.Permissions.AllowEmote = allowEmote;
+        friendBeingEditted.Permissions.AllowSpeak = allowSpeak;
+        friendBeingEditted.Permissions.AllowChangeAppearance = allowChangeAppearance;
+        friendBeingEditted.Permissions.AllowChangeEquipment = allowChangeEquipment;
+        friendBeingEditted.Permissions.AllowSay = allowSay;
+        friendBeingEditted.Permissions.AllowYell = allowYell;
+        friendBeingEditted.Permissions.AllowShout = allowShout;
+        friendBeingEditted.Permissions.AllowTell = allowTell;
+        friendBeingEditted.Permissions.AllowParty = allowParty;
+        friendBeingEditted.Permissions.AllowAlliance = allowAlliance;
+        friendBeingEditted.Permissions.AllowFreeCompany = allowFreeCompany;
+        friendBeingEditted.Permissions.AllowLinkshell = allowLinkshell;
+        friendBeingEditted.Permissions.AllowCrossworldLinkshell = allowCrossworldLinkshell;
+        friendBeingEditted.Permissions.AllowPvPTeam = allowPvPTeam;
+
+        friendListProvider.Save();
     }
 
     private void SetAllSpeakPermissions(bool enabled)
@@ -399,6 +411,44 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         allowPvPTeam = enabled;
         allowLinkshell = enabled;
         allowCrossworldLinkshell = enabled;
+    }
+
+    /// <summary>
+    /// Checks to see if the friend being editted has pending changes
+    /// </summary>
+    private bool PendingChanges()
+    {
+        if (friendBeingEditted == null)
+            return false;
+
+        // Note
+        if (friendBeingEditted.Note == null)
+        {
+            if (friendNote != string.Empty)
+                return true;
+        }
+        else
+        {
+            if (friendBeingEditted.Note != friendNote)
+                return true;
+        }
+
+        if (friendBeingEditted.Permissions.AllowSpeak != allowSpeak) return true;
+        if (friendBeingEditted.Permissions.AllowSay != allowSay) return true;
+        if (friendBeingEditted.Permissions.AllowYell != allowTell) return true;
+        if (friendBeingEditted.Permissions.AllowShout != allowShout) return true;
+        if (friendBeingEditted.Permissions.AllowTell != allowTell) return true;
+        if (friendBeingEditted.Permissions.AllowParty != allowParty) return true;
+        if (friendBeingEditted.Permissions.AllowAlliance != allowAlliance) return true;
+        if (friendBeingEditted.Permissions.AllowFreeCompany != allowFreeCompany) return true;
+        if (friendBeingEditted.Permissions.AllowPvPTeam != allowPvPTeam) return true;
+        if (friendBeingEditted.Permissions.AllowLinkshell != allowLinkshell) return true;
+        if (friendBeingEditted.Permissions.AllowCrossworldLinkshell != allowCrossworldLinkshell) return true;
+        if (friendBeingEditted.Permissions.AllowEmote != allowEmote) return true;
+        if (friendBeingEditted.Permissions.AllowChangeAppearance != allowChangeAppearance) return true;
+        if (friendBeingEditted.Permissions.AllowChangeEquipment != allowChangeEquipment) return true;
+
+        return false;
     }
 
     private static bool FilterFriend(Friend friend, string searchTerm)

@@ -9,7 +9,7 @@ public static class FriendTranslator
         var translated = new AetherRemoteCommon.Domain.CommonFriend.Friend();
         translated.FriendCode = friend.FriendCode;
         translated.Note = friend.Note;
-        translated.Permissions = friend.Preferences;
+        translated.Permissions = friend.Permissions;
         return translated;
     }
 

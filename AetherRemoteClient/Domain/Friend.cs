@@ -4,7 +4,7 @@ using System;
 namespace AetherRemoteClient.Domain;
 
 [Serializable]
-public class Friend(string id, string? note = null, FriendPermissions? preferences = null)
+public class Friend(string id, string? note = null, FriendPermissions? permissions = null)
 {
     /// <summary>
     /// Id of the friend (UserId)
@@ -19,7 +19,7 @@ public class Friend(string id, string? note = null, FriendPermissions? preferenc
     /// <summary>
     /// Friend preferences
     /// </summary>
-    public FriendPermissions Preferences = preferences ?? new();
+    public FriendPermissions Permissions = permissions ?? new();
 
     /// <summary>
     /// Returns a friend's given note, or their id
@@ -40,11 +40,11 @@ public class Friend(string id, string? note = null, FriendPermissions? preferenc
 
     public Friend Copy()
     {
-        return new Friend(FriendCode, Note, Preferences);
+        return new Friend(FriendCode, Note, Permissions);
     }
 
     public override string ToString()
     {
-        return $"Friend[FriendCode={FriendCode}, Note={Note}, Preferences={Preferences}]";
+        return $"Friend[FriendCode={FriendCode}, Note={Note}, Preferences={Permissions}]";
     }
 }

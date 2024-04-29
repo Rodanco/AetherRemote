@@ -51,7 +51,7 @@ public class NetworkListener
             return;
         }
 
-        var hasPermission = PermissionChecker.HasGlamourerPermission(execute.GlamourerApplyType, validFriend.Preferences);
+        var hasPermission = PermissionChecker.HasGlamourerPermission(execute.GlamourerApplyType, validFriend.Permissions);
         if (hasPermission == false)
         {
             var message = $"Filtered out \'Become\' command from {execute.SenderFriendCode} who does not have {execute.GlamourerApplyType} permissions";
@@ -72,7 +72,7 @@ public class NetworkListener
             return;
         }
 
-        var hasPermission = PermissionChecker.HasEmotePermission(validFriend.Preferences);
+        var hasPermission = PermissionChecker.HasEmotePermission(validFriend.Permissions);
         if (hasPermission == false)
         {
             var message = $"Filtered out \'Emote\' command from {execute.SenderFriendCode} who does not have Emote permissions";
@@ -101,7 +101,7 @@ public class NetworkListener
             return;
         }
 
-        var hasPermission = PermissionChecker.HasSpeakPermission(execute.ChatMode, validFriend.Preferences);
+        var hasPermission = PermissionChecker.HasSpeakPermission(execute.ChatMode, validFriend.Permissions);
         if (hasPermission == false)
         {
             var message = $"Filtered out \'Speak\' command from {execute.SenderFriendCode} who does not have {execute.ChatMode} permissions";
