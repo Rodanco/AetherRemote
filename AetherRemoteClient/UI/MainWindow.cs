@@ -1,7 +1,6 @@
 using AetherRemoteClient.Accessors.Glamourer;
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteClient.UI.Experimental.Tabs.Sessions;
 using AetherRemoteClient.UI.Tabs.Control;
 using AetherRemoteClient.UI.Tabs.Dashboard;
 using AetherRemoteClient.UI.Tabs.Friends;

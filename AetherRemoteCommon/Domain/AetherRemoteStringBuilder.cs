@@ -1,5 +1,6 @@
 using AetherRemoteCommon.Domain.CommonChatMode;
 using AetherRemoteCommon.Domain.CommonFriend;
+using AetherRemoteCommon.Domain.CommonFriendPermissions;
 using AetherRemoteCommon.Domain.CommonGlamourerApplyType;
 using System.Text;
 
@@ -79,6 +80,14 @@ public class AetherRemoteStringBuilder
     /// Extension for <see cref="ChatMode"/>
     /// </summary>
     public void AddVariable(string name, ChatMode value)
+    {
+        AddVariable(name, value.ToString());
+    }
+
+    /// <summary>
+    /// Extension for <see cref="FriendPermissions"/>
+    /// </summary>
+    public void AddVariable(string name, FriendPermissions value)
     {
         AddVariable(name, value.ToString());
     }

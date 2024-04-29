@@ -9,7 +9,7 @@ namespace AetherRemoteClient.UI.Tabs.Logs;
 
 public class LogsTab : ITab
 {
-    private readonly ThreadedFilter<LogEntry> threadedFilter = new(AetherRemoteLogging.Logs, FilterLogEntry);
+    private readonly ListFilter<LogEntry> logSearchFilter = new(AetherRemoteLogging.Logs, FilterLogEntry);
     private string searchLogTerm = string.Empty;
 
     public void Draw()
@@ -18,10 +18,9 @@ public class LogsTab : ITab
         {
             var width = (ImGui.GetStyle().WindowPadding.X * 2) + ImGui.GetFontSize();
             ImGui.SetNextItemWidth(-width);
+            // TODO: Update to a constant
             if (ImGui.InputTextWithHint("##SearchLog", "Search", ref searchLogTerm, 128))
-            {
-                threadedFilter.Restart(searchLogTerm);
-            }
+                logSearchFilter.UpdateSearchTerm(searchLogTerm);
 
             ImGui.SameLine();
             SharedUserInterfaces.IconButton(FontAwesomeIcon.TrashAlt);
@@ -34,9 +33,9 @@ public class LogsTab : ITab
 
             if (ImGui.BeginChild("LogArea", Vector2.Zero, true))
             {
-                for (var i = threadedFilter.List.Count - 1; i > 0; i--)
+                for (var i = logSearchFilter.List.Count - 1; i > 0; i--)
                 {
-                    var log = threadedFilter.List[i];
+                    var log = logSearchFilter.List[i];
                     switch (log.Type)
                     {
                         case LogType.Sent:

@@ -20,7 +20,7 @@ public class SessionTabEmoteSection(NetworkProvider networkProvider, SecretProvi
     private string emote = "";
     private Session? currentSession = null;
 
-    private readonly ThreadedFilter<string> emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) => { return emote.Contains(searchTerm); });
+    //private readonly ThreadedFilter<string> emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) => { return emote.Contains(searchTerm); });
 
     public void SetSession(Session newSession)
     {
@@ -33,14 +33,17 @@ public class SessionTabEmoteSection(NetworkProvider networkProvider, SecretProvi
 
         SharedUserInterfaces.MediumText("Emote", ImGuiColors.ParsedOrange);
 
-        SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, emoteFilter);
+        // Deprecated - Legacy Code
+        // SharedUserInterfaces.ComboFilter("###EmoteSelector", ref emote, emoteFilter);
 
         ImGui.SameLine();
 
+        /* Deprecated - Legacy Code
         if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Play))
         {
             shouldProcessEmoteCommand = true;
         }
+        */
 
         if (shouldProcessEmoteCommand)
         {

@@ -15,7 +15,7 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
     public readonly SecretProvider secretProvider = secretProvider;
     
     private static readonly int LoginElementsWidth = 200;
-    private static readonly Vector2 Spacing = new(8, 8);
+    private static readonly Vector2 LoginSpacing = new(8, 8);
 
     private string secretInputText = secretProvider.Secret;
 
@@ -73,7 +73,7 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
                         configuration.Save();
                     }
 
-                    ImGui.Dummy(Spacing);
+                    ImGui.Dummy(LoginSpacing);
 
                     ImGui.SetCursorPosX(x);
                     if (ImGui.Button("Login", new Vector2(LoginElementsWidth, 0)))

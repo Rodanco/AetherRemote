@@ -30,6 +30,7 @@ public class ControlTab(
     private const ImGuiTableFlags FriendListTableFlags = ImGuiTableFlags.Borders;
     private const int LinkshellSelectorWidth = 42;
 
+    private static readonly Vector2 QuestionIconOffset = CalcQuestionButtonOffset();
     private static readonly Vector2 LockButtonSize = new(40, 40);
     private static readonly int SendButtonWidth = 40;
     private static readonly int TransformButtonWidth = 80;
@@ -44,8 +45,12 @@ public class ControlTab(
     private readonly IPluginLog logger = logger;
     private readonly ITargetManager targetManager = targetManager;
 
-    // Variables
+    // Variables - Friend List
     private string searchInputText = "";
+    private readonly ListFilter<Friend> friendListSearchFilter = new(friendListProvider.FriendList, (friend, searchTerm) => { return friend.NoteOrFriendCode.Contains(searchTerm); });
+
+    // Variables
+
     private bool lockCurrentFriend = false;
     private Friend? currentFriend = null;
 
@@ -57,8 +62,7 @@ public class ControlTab(
 
     // Variables - Emote
     private string emote = "";
-    private readonly ThreadedFilter<string> emoteFilter = new(emoteProvider.Emotes, (emote, searchTerm) => { return emote.Contains(searchTerm); });
-    private readonly ListFilter<string> emoteFilter2 = new(emoteProvider.Emotes, (emote, searchTerm) => { return emote.Contains(searchTerm); });
+    private readonly ListFilter<string> emoteSearchFilter = new(emoteProvider.Emotes, (emote, searchTerm) => { return emote.Contains(searchTerm); });
 
     // Variables - Glamourer
     private string glamourerData = "";
@@ -72,7 +76,7 @@ public class ControlTab(
             ImGui.SetNextItemWidth(MainWindow.FriendListSize.X);
             if (ImGui.InputTextWithHint("##SearchFriendListInputText", "Search", ref searchInputText, Constants.FriendNicknameCharLimit))
             {
-                emoteFilter.Restart(searchInputText);
+                friendListSearchFilter.UpdateSearchTerm(searchInputText);
             }
             
             // Save the cursor at the bottom of the search input text before calling ImGui.SameLine for use later
@@ -114,7 +118,7 @@ public class ControlTab(
                 SharedUserInterfaces.Icon(FontAwesomeIcon.User);
                 ImGui.SameLine();
 
-                if (ImGui.Selectable($"{friend.NoteOrFriendCode}"))
+                if (ImGui.Selectable($"{friend.NoteOrFriendCode}", (currentFriend == friend), ImGuiSelectableFlags.SpanAllColumns))
                 {
                     if (lockCurrentFriend == false)
                         currentFriend = friend;
@@ -133,7 +137,7 @@ public class ControlTab(
             return;
         }
 
-        SharedUserInterfaces.BigText(currentFriend.NoteOrFriendCode, ImGuiColors.ParsedOrange);
+        SharedUserInterfaces.BigTextCentered(currentFriend.NoteOrFriendCode, ImGuiColors.ParsedOrange);
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetWindowWidth() - LockButtonSize.X - ImGui.GetStyle().WindowPadding.X);
@@ -162,7 +166,7 @@ public class ControlTab(
     {
         var shouldProcessSpeakCommand = false;
 
-        SharedUserInterfaces.MediumTextCentered("Speak");
+        SharedUserInterfaces.MediumTextCentered("Speak", null, QuestionIconOffset);
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
@@ -223,7 +227,7 @@ public class ControlTab(
     {
         var shouldProcessEmoteCommand = false;
 
-        SharedUserInterfaces.MediumTextCentered("Emote");
+        SharedUserInterfaces.MediumTextCentered("Emote", null, QuestionIconOffset);
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
@@ -237,7 +241,7 @@ public class ControlTab(
         SharedUserInterfaces.MediumText("Emote", ImGuiColors.ParsedOrange);
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(4, 4));
-        SharedUserInterfaces.ComboWithFilter(ref emote, "Emote", emoteFilter2);
+        SharedUserInterfaces.ComboWithFilter(ref emote, "Emote", emoteSearchFilter);
         ImGui.PopStyleVar();
         
         ImGui.SameLine();
@@ -255,7 +259,7 @@ public class ControlTab(
         var shouldProcessBecomeCommand = false;
         var glamourerInstalled = glamourerAccessor.IsGlamourerInstalled;
 
-        SharedUserInterfaces.MediumTextCentered("Transformation");
+        SharedUserInterfaces.MediumTextCentered("Transformation", null, QuestionIconOffset);
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         SharedUserInterfaces.Icon(FontAwesomeIcon.QuestionCircle);
@@ -438,5 +442,13 @@ public class ControlTab(
             return;
 
         glamourerData = data;
+    }
+
+    private static Vector2 CalcQuestionButtonOffset()
+    {
+        var offset = SharedUserInterfaces.CalcIconSize(FontAwesomeIcon.QuestionCircle);
+        offset.Y = 0;
+        offset.X *= 0.5f;
+        return offset;
     }
 }

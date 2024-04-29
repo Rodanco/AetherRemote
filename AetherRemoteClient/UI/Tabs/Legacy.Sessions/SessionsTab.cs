@@ -50,7 +50,7 @@ public class SessionsTab(
 
     // Add Friend to Session Popup
     private string friendSearchString = "";
-    private ThreadedFilter<Friend> friendSearchFilter = new([], FilterFriend);
+    // private ThreadedFilter<Friend> friendSearchFilter = new([], FilterFriend);
 
     public static readonly List<FontAwesomeIcon> IconPool = [
         FontAwesomeIcon.Feather,
@@ -279,7 +279,7 @@ public class SessionsTab(
                 result.Add(friend);
         }
 
-        friendSearchFilter = new(result, FilterFriend);
+        //friendSearchFilter = new(result, FilterFriend);
     }
 
     private static bool FilterFriend(Friend friend, string term)
@@ -309,11 +309,10 @@ public class SessionsTab(
                 ImGui.SetNextItemWidth(width);
 
                 if (ImGui.InputTextWithHint("##AddFriendPopupSearchBar", "Search", ref friendSearchString, Constants.FriendCodeCharLimit, ImGuiInputTextFlags.None))
-                {
-                   friendSearchFilter.Restart(friendSearchString);
-                }
+                { }//friendSearchFilter.UpdateSearchTerm(friendSearchString);
 
                 var removeFromIndex = -1;
+                /*
                 for(var i = 0; i < friendSearchFilter.List.Count; i++)
                 {
                     var friend = friendSearchFilter.List[i];
@@ -328,6 +327,7 @@ public class SessionsTab(
                 {
                     friendSearchFilter.List.RemoveAt(removeFromIndex);
                 }
+                */
 
                 ImGui.EndChild();
             }

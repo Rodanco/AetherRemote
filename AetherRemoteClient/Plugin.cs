@@ -30,7 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     /// <summary>
     /// Internal plugin version
     /// </summary>
-    public static readonly string Version = "1.0.1.7";
+    public static readonly string Version = "1.0.2.0";
     
     // Injected
     private DalamudPluginInterface pluginInterface { get; init; }

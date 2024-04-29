@@ -36,12 +36,12 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
     public void DrawGlamourerSection()
     {
         var shouldProcessGlamourerCommand = false;
+        var isGlamourerInstalled = glamourerAccessor.IsGlamourerInstalled;
 
-        var isGlamourerInstalledSnapshot = new Snapshot<bool>(glamourerAccessor.IsGlamourerInstalled);
-        SharedUserInterfaces.MediumText("Glamourer", isGlamourerInstalledSnapshot.Value ? ImGuiColors.ParsedOrange : ImGuiColors.DalamudGrey);
-        if (!isGlamourerInstalledSnapshot.Value) ImGui.BeginDisabled();
+        SharedUserInterfaces.MediumText("Glamourer", isGlamourerInstalled ? ImGuiColors.ParsedOrange : ImGuiColors.DalamudGrey);
+        if (isGlamourerInstalled == false) ImGui.BeginDisabled();
 
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Crosshairs))
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Crosshairs))
         {
             var target = targetManager.Target;
             if (target == null)
@@ -50,9 +50,6 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
             }
             else
             {
-                var t = target.Address;
-                
-
                 var data = glamourerAccessor.GetCustomization(target.Name.ToString());
                 if (data == null)
                 {
@@ -91,7 +88,7 @@ public class SessionTabGlamourerSection(NetworkProvider networkProvider, SecretP
             _ = ProcessGlamourerCommand();
         }
 
-        if (!isGlamourerInstalledSnapshot.Value) ImGui.EndDisabled();
+        if (isGlamourerInstalled == false) ImGui.EndDisabled();
     }
     private async Task ProcessGlamourerCommand()
     {

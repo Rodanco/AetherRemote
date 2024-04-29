@@ -65,7 +65,7 @@ public class SessionTabSpeakSection(NetworkProvider networkProvider, SecretProvi
             ImGui.InputTextWithHint("###TellTarget", "Target", ref tellTarget, Constants.PlayerNameCharLimit);
         }
 
-        if (SharedUserInterfaces.IconButtonScaled(FontAwesomeIcon.Comment))
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Comment))
         {
             ImGui.OpenPopup("ChatModeSelector");
         }

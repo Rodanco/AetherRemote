@@ -1,3 +1,4 @@
+using AetherRemoteCommon.Domain;
 using AetherRemoteCommon.Domain.CommonFriendPermissions;
 using System;
 
@@ -32,14 +33,13 @@ public class Friend(string id, string? note = null, FriendPermissions? permissio
     [NonSerialized]
     public bool Online = false;
 
-    /// <summary>
-    /// Is this friend selected in the dashboard for controlling
-    /// </summary>
-    [NonSerialized]
-    public bool Selected = false;
-
     public override string ToString()
     {
-        return $"Friend[FriendCode={FriendCode}, Note={Note}, Preferences={Permissions}]";
+        var sb = new AetherRemoteStringBuilder("Friend");
+        sb.AddVariable("FriendCode", FriendCode);
+        sb.AddVariable("Note", Note);
+        sb.AddVariable("Permissions", Permissions);
+        sb.AddVariable("Online", Online);
+        return sb.ToString();
     }
 }

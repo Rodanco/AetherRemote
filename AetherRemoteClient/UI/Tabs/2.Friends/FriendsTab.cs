@@ -142,13 +142,10 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
                 SharedUserInterfaces.Icon(FontAwesomeIcon.User);
                 ImGui.SameLine();
 
-                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, SharedUserInterfaces.HoveredColorTheme);
-                ImGui.PushStyleColor(ImGuiCol.Header, SharedUserInterfaces.SelectedColorTheme);
                 if (ImGui.Selectable($"{friend.NoteOrFriendCode}", friendBeingEditted == friend, ImGuiSelectableFlags.SpanAllColumns))
                 {
                     EditFriend(friend);
                 }
-                ImGui.PopStyleColor(2);
             }
 
             ImGui.EndTable();
@@ -157,9 +154,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
 
     private void DrawFriendSetting()
     {
-        // Store the value of the variable in case it changes mid-execution
-        var friendBeingEdittedSnapshot = new Snapshot<Friend?>(friendBeingEditted);
-        if (friendBeingEdittedSnapshot.Value == null)
+        if (friendBeingEditted == null)
         {
             SharedUserInterfaces.PushBigFont();
             var windowCenter = new Vector2(ImGui.GetWindowSize().X / 2, ImGui.GetWindowSize().Y / 2);
@@ -173,7 +168,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
         }
         else
         {
-            SharedUserInterfaces.BigTextCentered($"Editing {friendBeingEdittedSnapshot.Value.FriendCode}");
+            SharedUserInterfaces.BigTextCentered(friendBeingEditted.FriendCode, ImGuiColors.ParsedOrange);
 
             ImGui.SameLine();
             var deleteButtonPosition = ImGui.GetWindowSize() - ImGui.GetStyle().WindowPadding - RoundButtonSize;
@@ -245,8 +240,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
             }
 
             ImGui.Indent();
-            var allowSpeakSnapshot = new Snapshot<bool>(allowSpeak);
-            if (allowSpeakSnapshot.Value == false) ImGui.BeginDisabled();
+            if (allowSpeak == false) ImGui.BeginDisabled();
             if (ImGui.BeginTable("SpeakPermissionsTable", 2))
             {
                 ImGui.TableNextColumn(); ImGui.Checkbox("Say", ref allowSay);
@@ -262,8 +256,7 @@ public class FriendsTab(FriendListProvider friendListProvider, NetworkProvider n
                 ImGui.EndTable();
             }
             ImGui.Unindent();
-
-            if (allowSpeakSnapshot.Value == false) ImGui.EndDisabled();
+            if (allowSpeak == false) ImGui.EndDisabled();
 
             ImGui.Checkbox("Allow force emote", ref allowEmote);
             ImGui.SameLine();
