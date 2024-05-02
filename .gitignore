@@ -3,3 +3,4 @@ obj/
 bin/
 *.user
 AetherRemoteInterface/
+AetherRemoteServer/Data/

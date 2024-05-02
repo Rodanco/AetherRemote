@@ -33,9 +33,25 @@ public class NetworkProvider : IDisposable
     // Network
     public readonly HubConnection Connection = new HubConnectionBuilder().WithUrl(ConnectionUrl).Build();
 
+    // State
+    private ServerConnectionState connectionState = ServerConnectionState.Disconnected;
+    public ServerConnectionState ConnectionState
+    {
+        get
+        {
+            return connectionState;
+        }
+        set
+        {
+            if (Plugin.DeveloperMode == false)
+                return;
+
+            connectionState = value; 
+        }
+    }
+
     // Data
     public string? FriendCode { get; private set; } = null;
-    public ServerConnectionState ConnectionState = ServerConnectionState.Disconnected;
 
     public NetworkProvider(IPluginLog logger)
     {
@@ -54,24 +70,24 @@ public class NetworkProvider : IDisposable
         if (Connection.State != HubConnectionState.Disconnected)
             return new AsyncResult(false, "Pending connection in progress");
 
-        ConnectionState = ServerConnectionState.Connecting;
+        connectionState = ServerConnectionState.Connecting;
 
         var connectionResult = await ConnectToServer();
         if (connectionResult.Success == false)
         {
-            ConnectionState = ServerConnectionState.Disconnected;
+            connectionState = ServerConnectionState.Disconnected;
             return connectionResult;
         }
 
         var loginResult = await LoginToServer(secret);
         if (loginResult.Success == false)
         {
-            ConnectionState = ServerConnectionState.Disconnected;
+            connectionState = ServerConnectionState.Disconnected;
             await Task.Run(() => Connection.StopAsync());
             return loginResult;
         }
 
-        ConnectionState = ServerConnectionState.Connected;
+        connectionState = ServerConnectionState.Connected;
         return new AsyncResult(true);
     }
 
@@ -112,6 +128,16 @@ public class NetworkProvider : IDisposable
             return new AsyncResult(false, ex.Message);
         }
     }
+
+    public async void Disconnect()
+    {
+        if (Plugin.DeveloperMode == false)
+            await Connection.StopAsync();
+
+        connectionState = ServerConnectionState.Disconnected;
+        FriendCode = null;
+    }
+
     #endregion
 
     #region === Sync ===
@@ -227,16 +253,16 @@ public class NetworkProvider : IDisposable
 
     private async Task Closed(Exception? exception)
     {
-        await Task.Run(() => { ConnectionState = ServerConnectionState.Disconnected; });
+        await Task.Run(() => { connectionState = ServerConnectionState.Disconnected; });
     }
 
     private async Task Reconnecting(Exception? exception)
     {
-        await Task.Run(() => { ConnectionState = ServerConnectionState.Reconnecting; });
+        await Task.Run(() => { connectionState = ServerConnectionState.Reconnecting; });
     }
 
     private async Task Reconnected(string? arg)
     {
-        await Task.Run(() => { ConnectionState = ServerConnectionState.Connected; });
+        await Task.Run(() => { connectionState = ServerConnectionState.Connected; });
     }
 }

@@ -1,23 +1,36 @@
 using AetherRemoteClient.Domain;
 using AetherRemoteClient.Providers;
-using AetherRemoteCommon;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 using System.Numerics;
 
 namespace AetherRemoteClient.UI.Tabs.Dashboard;
 
-public class DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider) : ITab
+public class DashboardTab : ITab
 {
-    public readonly Configuration configuration = configuration;
-    public readonly FriendListProvider friendListProvider = friendListProvider;
-    public readonly NetworkProvider networkProvider = networkProvider;
-    public readonly SecretProvider secretProvider = secretProvider;
+    public readonly Configuration configuration;
+    public readonly FriendListProvider friendListProvider;
+    public readonly NetworkProvider networkProvider;
+    public readonly SecretProvider secretProvider;
     
     private static readonly int LoginElementsWidth = 200;
-    private static readonly Vector2 LoginSpacing = new(8, 8);
+    private static readonly int LoginButtonWidth = 50;
 
-    private string secretInputText = secretProvider.Secret;
+    private string secretInputText;
+
+    public DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider)
+    {
+        this.configuration = configuration;
+        this.friendListProvider = friendListProvider;
+        this.networkProvider = networkProvider;
+        this.secretProvider = secretProvider;
+
+        secretInputText = secretProvider.Secret;
+
+        if (configuration.AutoConnect)
+            Login();
+    }
 
     public void Draw()
     {
@@ -25,11 +38,19 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
         {
             if (ImGui.BeginChild("DashboardArea", Vector2.Zero, true))
             {
-                SharedUserInterfaces.BigTextCentered("Aether Remote", ImGuiColors.ParsedOrange);
-                SharedUserInterfaces.MediumTextCentered($"{Plugin.Stage} V{Plugin.Version}");
+                if (Plugin.DeveloperMode)
+                {
+                    if (ImGui.Button("Toggle"))
+                    {
+                        if (networkProvider.ConnectionState == ServerConnectionState.Connected)
+                            networkProvider.ConnectionState = ServerConnectionState.Disconnected;
+                        else
+                            networkProvider.ConnectionState = ServerConnectionState.Connected;
+                    }
 
-                // TODO: Modify this code (everything with state) to use the new hybrid connection state
-                // which encapsulates both the SignalR connection and logging in.
+                    ImGui.SameLine();
+                }
+
                 var state = networkProvider.ConnectionState;
                 var color = state switch
                 {
@@ -38,55 +59,23 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
                     _ => ImGuiColors.DalamudYellow,
                 };
 
-                SharedUserInterfaces.TextCentered(state.ToString(), color);
-
                 if (state == ServerConnectionState.Connected)
-                {
-                    SharedUserInterfaces.BigTextCentered("My Friend Code");
-                    SharedUserInterfaces.BigTextCentered(networkProvider?.FriendCode ?? "");
-                }
+                    DrawConnectedMenu();
                 else
-                {
-                    if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
-                        ImGui.BeginDisabled();
+                    DrawDisconnectedMenu(state);
 
-                    var shouldLogin = false;
+                // Connection Status
+                ImGui.SetCursorPosY(ImGui.GetWindowHeight() - ImGui.GetStyle().WindowPadding.Y - ImGui.GetFontSize());
+                ImGui.Text("Server Status:");
+                ImGui.SameLine();
+                ImGui.TextColored(color, state.ToString());
 
-                    var w = ImGui.GetWindowWidth();
-                    var h = ImGui.GetWindowHeight();
-                    var x = (w / 2) - (LoginElementsWidth / 2);
-                    var y = (h / 2) - (h * 0.15f);
-
-                    ImGui.SetCursorPosY(y);
-                    SharedUserInterfaces.MediumTextCentered("Login");
-
-                    ImGui.SetCursorPosX(x);
-                    ImGui.SetNextItemWidth(LoginElementsWidth);
-                    if (ImGui.InputTextWithHint("##SecretInput", "Enter Secret", ref secretInputText, Constants.SecretCharLimit, ImGuiInputTextFlags.EnterReturnsTrue))
-                    {
-                        shouldLogin = true;
-                    }
-
-                    ImGui.SetCursorPosX(x);
-                    if (ImGui.Checkbox("Auto connect", ref configuration.AutoConnect))
-                    {
-                        configuration.Save();
-                    }
-
-                    ImGui.Dummy(LoginSpacing);
-
-                    ImGui.SetCursorPosX(x);
-                    if (ImGui.Button("Login", new Vector2(LoginElementsWidth, 0)))
-                    {
-                        shouldLogin = true;
-                    }
-
-                    if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
-                        ImGui.EndDisabled();
-
-                    if (shouldLogin)
-                        Login();
-                }
+                // Plugin Version
+                ImGui.SameLine();
+                var version = $"{Plugin.Stage} {Plugin.Version}";
+                var versionWidth = ImGui.CalcTextSize(version).X;
+                ImGui.SetCursorPosX(ImGui.GetWindowWidth() - versionWidth - ImGui.GetStyle().WindowPadding.X);
+                ImGui.Text(version);
 
                 ImGui.EndChild();
             }
@@ -95,11 +84,80 @@ public class DashboardTab(Configuration configuration, FriendListProvider friend
         }
     }
 
+    private void DrawConnectedMenu()
+    {
+        SharedUserInterfaces.PushBigFont();
+
+        var width = ImGui.GetWindowWidth();
+        var fontSize = ImGui.GetFontSize();
+        var windowPadding = ImGui.GetStyle().WindowPadding;
+        
+        ImGui.SetCursorPos(new Vector2(width - fontSize - windowPadding.X, windowPadding.Y));
+        if (SharedUserInterfaces.IconButton(FontAwesomeIcon.Plug, new Vector2(fontSize, fontSize)))
+            networkProvider.Disconnect();
+
+        SharedUserInterfaces.PopBigFont();
+        SharedUserInterfaces.Tooltip("Disconnect");
+        SharedUserInterfaces.PushBigFont();
+
+        ImGui.SetCursorPosY(windowPadding.Y);
+        SharedUserInterfaces.TextCentered("My Friend Code");
+
+        var friendCode = Plugin.DeveloperMode ? "Dev Mode" : networkProvider.FriendCode ?? "null";
+        var friendCodeSize = ImGui.CalcTextSize(friendCode);
+        
+        ImGui.SetCursorPosX((width / 2) - (friendCodeSize.X / 2));
+        ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedOrange);
+        if (ImGui.Selectable(friendCode, false, ImGuiSelectableFlags.None, friendCodeSize))
+            ImGui.SetClipboardText(friendCode);
+
+        ImGui.PopStyleColor();
+
+        SharedUserInterfaces.Tooltip("Copy to Clipboard");
+        SharedUserInterfaces.PopBigFont();
+    }
+
+    private void DrawDisconnectedMenu(ServerConnectionState state)
+    {
+        if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
+            ImGui.BeginDisabled();
+
+        var shouldLogin = false;
+        var width = ImGui.GetWindowWidth();
+        var height = ImGui.GetWindowHeight();
+
+        SharedUserInterfaces.BigTextCentered("Aether Remote", ImGuiColors.ParsedOrange);
+
+        ImGui.SetCursorPosY((height / 2) - (ImGui.GetFontSize() * 2));
+        
+        var x = (width / 2) - (LoginElementsWidth / 2);
+        ImGui.SetCursorPosX(x);
+        ImGui.SetNextItemWidth(LoginElementsWidth);
+        if (ImGui.InputTextWithHint("##Login", "Secret", ref secretInputText, 60, ImGuiInputTextFlags.EnterReturnsTrue))
+            shouldLogin = true;
+
+        ImGui.SetCursorPosX(x);
+        ImGui.Checkbox("Auto Sign In", ref configuration.AutoConnect);
+
+        ImGui.SameLine();
+
+        ImGui.SetCursorPosX(x + LoginElementsWidth - LoginButtonWidth);
+        if (ImGui.Button("Login", new Vector2(LoginButtonWidth, 0)))
+            shouldLogin = true;
+
+        if (shouldLogin)
+        {
+            secretProvider.Secret = secretInputText;
+            secretProvider.Save();
+            Login();
+        }
+
+        if (state == ServerConnectionState.Connecting || state == ServerConnectionState.Reconnecting)
+            ImGui.EndDisabled();
+    }
+
     private async void Login()
     {
-        secretProvider.Secret = secretInputText;
-        secretProvider.Save();
-
         var connectResult = await networkProvider.Connect(secretProvider.Secret);
         if (connectResult.Success)
         {
