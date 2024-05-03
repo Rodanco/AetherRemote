@@ -47,14 +47,14 @@ public class NetworkService
         return new ResultWithMessage(true);
     }
 
-    public ResultWithMessage Sync(string secret, string friendListHash)
+    public async Task<ResultWithMessage> Sync(string secret, byte[] friendListHash)
     {
         var userData = RetrieveOnlineUserBySecret(secret);
         if (userData == null)
             return new ResultWithMessage(false, "Requester not logged in");
 
-        var hash = userData.Friends.GetHashCode().ToString();
-        return new ResultWithMessage(hash == friendListHash);
+        var hash = await AetherRemoteHash.ComputeFriendListHash(userData.Friends);
+        return new ResultWithMessage(hash.SequenceEqual(friendListHash));
     }
 
     public ResultWithFriends FetchFriendList(string secret)
@@ -92,6 +92,8 @@ public class NetworkService
             userData.Friends[index] = friend; // Update
         }
 
+        storageService.SaveUserData();
+
         // TODO: Return Friend Online Status
         return new ResultWithMessage(true);
     }
@@ -112,6 +114,8 @@ public class NetworkService
         {
             userData.Friends.RemoveAt(index);
         }
+
+        storageService.SaveUserData();
 
         return result;
     }

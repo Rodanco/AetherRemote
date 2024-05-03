@@ -3,9 +3,9 @@ namespace AetherRemoteCommon.Domain.Network.Sync;
 public struct SyncRequest
 {
     public string Secret { get; set; }
-    public string FriendListHash { get; set; }
+    public byte[] FriendListHash { get; set; }
 
-    public SyncRequest(string secret, string friendListHash)
+    public SyncRequest(string secret, byte[] friendListHash)
     {
         Secret = secret;
         FriendListHash = friendListHash;

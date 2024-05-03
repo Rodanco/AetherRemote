@@ -26,9 +26,9 @@ public class MainHub : Hub
     }
 
     [HubMethodName(Constants.ApiSync)]
-    public SyncResponse Sync(SyncRequest request)
+    public async Task<SyncResponse> Sync(SyncRequest request)
     {
-        var result = NetworkService.Sync(request.Secret, request.FriendListHash);
+        var result = await NetworkService.Sync(request.Secret, request.FriendListHash);
         return new SyncResponse(result.Success, result.Message);
     }
 

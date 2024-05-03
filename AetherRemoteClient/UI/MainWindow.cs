@@ -54,7 +54,7 @@ public class MainWindow : Window
 
         this.networkProvider = networkProvider;
 
-        dashboardTab = new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider);
+        dashboardTab = new DashboardTab(configuration, friendListProvider, networkProvider, secretProvider, logger);
         friendsTab = new FriendsTab(friendListProvider, networkProvider, secretProvider, logger);
         logsTab = new LogsTab();
         settingsTab = new SettingsTab(configuration);

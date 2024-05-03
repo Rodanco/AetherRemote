@@ -92,6 +92,14 @@ public class AetherRemoteStringBuilder
         AddVariable(name, value.ToString());
     }
 
+    /// <summary>
+    /// Extension for <see cref="byte[]"/>
+    /// </summary>
+    public void AddVariable(string name, byte[] value)
+    {
+        AddVariable(name, string.Join("", value));
+    }
+
     public override string ToString()
     {
         sb.Length--;

@@ -141,7 +141,7 @@ public class NetworkProvider : IDisposable
     #endregion
 
     #region === Sync ===
-    public async Task<AsyncResult> Sync(string secret, string friendListHash)
+    public async Task<AsyncResult> Sync(string secret, byte[] friendListHash)
     {
         if (Plugin.DeveloperMode)
             return new AsyncResult(true, "DeveloperMode Enabled");

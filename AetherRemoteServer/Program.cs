@@ -1,5 +1,4 @@
 using AetherRemoteServer.Hubs;
-using AetherRemoteServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

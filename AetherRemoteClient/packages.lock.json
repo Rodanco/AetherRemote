@@ -8,6 +8,12 @@
         "resolved": "2.1.12",
         "contentHash": "Sc0PVxvgg4NQjcI8n10/VfUQBAS4O+Fw2pZrAqBdRMbthYGeogzu5+xmIGCGmsEZ/ukMOBuAqiNiB5qA3MRalg=="
       },
+      "Glamourer.Api": {
+        "type": "Direct",
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "DYHPIXJz7Ux0QteIttsLXZRbTL3mPC4crMOAFQgngulX+ZYBO+aopTcAD7HrWecqefH2UnaL1mGKKqQDCErWzQ=="
+      },
       "Microsoft.AspNetCore.SignalR.Client": {
         "type": "Direct",
         "requested": "[8.0.4, )",
@@ -147,9 +153,6 @@
         "contentHash": "CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA=="
       },
       "aetherremotecommon": {
-        "type": "Project"
-      },
-      "glamourer.api": {
         "type": "Project"
       }
     }

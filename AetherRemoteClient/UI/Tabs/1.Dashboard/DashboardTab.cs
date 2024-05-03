@@ -1,30 +1,34 @@
 using AetherRemoteClient.Domain;
+using AetherRemoteClient.Domain.Translators;
 using AetherRemoteClient.Providers;
+using AetherRemoteCommon.Domain;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System.Numerics;
-
 namespace AetherRemoteClient.UI.Tabs.Dashboard;
 
 public class DashboardTab : ITab
 {
-    public readonly Configuration configuration;
-    public readonly FriendListProvider friendListProvider;
-    public readonly NetworkProvider networkProvider;
-    public readonly SecretProvider secretProvider;
+    private readonly Configuration configuration;
+    private readonly FriendListProvider friendListProvider;
+    private readonly NetworkProvider networkProvider;
+    private readonly SecretProvider secretProvider;
+    private readonly IPluginLog logger;
     
     private static readonly int LoginElementsWidth = 200;
     private static readonly int LoginButtonWidth = 50;
 
     private string secretInputText;
 
-    public DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider)
+    public DashboardTab(Configuration configuration, FriendListProvider friendListProvider, NetworkProvider networkProvider, SecretProvider secretProvider, IPluginLog logger)
     {
         this.configuration = configuration;
         this.friendListProvider = friendListProvider;
         this.networkProvider = networkProvider;
         this.secretProvider = secretProvider;
+        this.logger = logger;
 
         secretInputText = secretProvider.Secret;
 
@@ -137,7 +141,8 @@ public class DashboardTab : ITab
             shouldLogin = true;
 
         ImGui.SetCursorPosX(x);
-        ImGui.Checkbox("Auto Sign In", ref configuration.AutoConnect);
+        if (ImGui.Checkbox("Auto Sign In", ref configuration.AutoConnect))
+            configuration.Save();
 
         ImGui.SameLine();
 
@@ -159,13 +164,15 @@ public class DashboardTab : ITab
     private async void Login()
     {
         var connectResult = await networkProvider.Connect(secretProvider.Secret);
-        if (connectResult.Success)
-        {
-            // TODO: Do something
+        if (connectResult.Success == false)
+            return;
 
-            // Ideally at this point we can request a sync, and if the syncs are different
-            // then we can make a popup asking the user to select if they want what is local
-            // or what is stored on the server.
+        var commonFriendList = FriendTranslator.DomainFriendListToCommon(friendListProvider.FriendList);
+        var hash = await AetherRemoteHash.ComputeFriendListHash(commonFriendList);
+        var syncResult = await networkProvider.Sync(secretInputText, hash);
+        if (syncResult.Success)
+        {
+            logger.Info("Success");
         }
     }
 }

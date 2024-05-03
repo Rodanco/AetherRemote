@@ -1,6 +1,12 @@
 {
   "testSecret": {
     "FriendCode": "TestFriendCode",
-    "Friends": []
+    "Friends": [
+      {
+        "FriendCode": "test",
+        "Note": null,
+        "Permissions": {}
+      }
+    ]
   }
 }

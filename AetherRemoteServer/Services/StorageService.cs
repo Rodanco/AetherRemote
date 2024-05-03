@@ -67,7 +67,7 @@ public class StorageService
         return result;
     }
 
-    private void SaveUserData()
+    public void SaveUserData()
     {
         try
         {
